@@ -150,6 +150,14 @@ export const api = {
     return res.json();
   },
 
+  async getReviewQueue(): Promise<any[]> {
+    const res = await fetch(`${BACKEND_URL}/api/teaching/review-queue`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch spaced reviews queue");
+    }
+    return res.json();
+  },
+
   async generateResume(userId: string, githubUrl: string, projectDesc: string, targetRole: string): Promise<any> {
     const res = await fetch(`${BACKEND_URL}/api/resume/generate`, {
       method: "POST",

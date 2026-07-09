@@ -26,7 +26,11 @@ import {
   FileDown,
   Lock,
   Unlock,
-  ChevronLeft
+  ChevronLeft,
+  Users,
+  Video,
+  Radio,
+  CheckSquare
 } from "lucide-react";
 import { api, Roadmap, CodeExecutionResponse, TestCaseResult } from "../lib/api";
 
@@ -70,6 +74,10 @@ export default function App() {
   });
   const [onboardingStep, setOnboardingStep] = useState<number>(1);
 
+  // Week/Day selected in Roadmap
+  const [activeWeekNum, setActiveWeekNum] = useState<number>(1);
+  const [expandedDay, setExpandedDay] = useState<string | null>("Day 1");
+
   // Learning Engine State
   const [selectedTopic, setSelectedTopic] = useState<string>("functions");
   const [lessonDefinition, setLessonDefinition] = useState<any>(null);
@@ -105,6 +113,15 @@ export default function App() {
   const [interviewCode, setInterviewCode] = useState<string>("");
   const [interviewResult, setInterviewResult] = useState<any>(null);
 
+  // V2 Spaced Repetition State
+  const [reviewQueue, setReviewQueue] = useState<any[]>([]);
+
+  // V2 WebSockets Peer Collaboration State
+  const [isMultiplayer, setIsMultiplayer] = useState<boolean>(false);
+  const [roomId, setRoomId] = useState<string>("");
+  const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
+  const [peerStatus, setPeerStatus] = useState<string>("Disconnected");
+
   // Mastery State
   const [conceptMastery, setConceptMastery] = useState<Record<string, number>>({
     "Variables": 100,
@@ -116,10 +133,6 @@ export default function App() {
     "Graphs": 0
   });
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-
-  // Week/Day selected in Roadmap
-  const [activeWeekNum, setActiveWeekNum] = useState<number>(1);
-  const [expandedDay, setExpandedDay] = useState<string | null>("Day 1");
 
   // Watch Skiena State
   const [skienaPaused, setSkienaPaused] = useState<boolean>(false);
@@ -151,6 +164,13 @@ export default function App() {
     loadRoadmap();
   }, []);
 
+  // Fetch spaced repetition review queue when onboarded
+  useEffect(() => {
+    if (isOnboarded) {
+      api.getReviewQueue().then(setReviewQueue).catch(console.error);
+    }
+  }, [isOnboarded]);
+
   // Interval timer for Interview Mode
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -165,6 +185,15 @@ export default function App() {
     return () => clearInterval(timer);
   }, [interviewActive, interviewTimeLeft]);
 
+  // WebSockets Room connection cleanup
+  useEffect(() => {
+    return () => {
+      if (wsConnection) {
+        wsConnection.close();
+      }
+    };
+  }, [wsConnection]);
+
   const handleOnboardingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -176,6 +205,10 @@ export default function App() {
       setRoadmap(generated);
       setIsOnboarded(true);
       setActiveTab("roadmap");
+      
+      // Load review queue
+      const queue = await api.getReviewQueue();
+      setReviewQueue(queue);
     } catch (err) {
       console.error(err);
       alert("Roadmap generation failed. Using local fallback.");
@@ -207,7 +240,6 @@ export default function App() {
       const def = await api.getLesson(topicId);
       setLessonDefinition(def);
       
-      // Initialize editor template for first build state
       const buildState = def.states.find((s: any) => s.type === "build");
       if (buildState) {
         setEditorCode(buildState.code_template);
@@ -220,15 +252,41 @@ export default function App() {
     }
   };
 
+  const handleCodeChange = (newCode: string) => {
+    if (interviewActive) {
+      setInterviewCode(newCode);
+    } else {
+      setEditorCode(newCode);
+    }
+
+    // Sync input code changes over Websocket connection
+    if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+      wsConnection.send(JSON.stringify({
+        type: "CODE_CHANGE",
+        code: newCode
+      }));
+    }
+  };
+
   const handleRunCode = async (stateType: "build" | "challenge") => {
     setExecutionLoading(true);
     setExecutionResult(null);
+    const codeToRun = interviewActive ? interviewCode : editorCode;
     try {
-      const result = await api.executeCode(userId, selectedTopic, stateType, editorCode);
+      const result = await api.executeCode(userId, selectedTopic, stateType, codeToRun);
       setExecutionResult(result);
       if (result.trace && result.trace.length > 0) {
         setTraceHistory(result.trace);
         setTraceIndex(0);
+      }
+      
+      // Sync compile prints and whiteboard replay states over WebSocket
+      if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+        wsConnection.send(JSON.stringify({
+          type: "EXECUTION_RUN",
+          result: result,
+          trace: result.trace || []
+        }));
       }
     } catch (err) {
       console.error(err);
@@ -242,8 +300,9 @@ export default function App() {
     setHintLoading(true);
     const nextAttempt = attemptCount + 1;
     setAttemptCount(nextAttempt);
+    const targetCode = interviewActive ? interviewCode : editorCode;
     try {
-      const hint = await api.getHint(userId, selectedTopic, stateType, editorCode, nextAttempt);
+      const hint = await api.getHint(userId, selectedTopic, stateType, targetCode, nextAttempt);
       setActiveHint(hint.message);
       setHintType(hint.hint_type);
     } catch (err) {
@@ -270,9 +329,16 @@ export default function App() {
     setExecutionLoading(true);
     setInterviewActive(false);
     try {
-      // Reuse executeCode for challenge in interview mode
       const result = await api.executeCode(userId, selectedTopic, "challenge", interviewCode);
       setInterviewResult(result);
+      
+      if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+        wsConnection.send(JSON.stringify({
+          type: "EXECUTION_RUN",
+          result: result,
+          trace: []
+        }));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -292,6 +358,130 @@ export default function App() {
       });
       return updated;
     });
+  };
+
+  // V2 WebSocket peer connection join handler
+  const joinMultiplayerWorkspace = () => {
+    if (!roomId.trim()) return;
+    if (wsConnection) {
+      wsConnection.close();
+    }
+    setPeerStatus("Connecting...");
+    
+    // Connect to backend WS server
+    const ws = new WebSocket(`ws://localhost:8000/api/ws/interview/${roomId}`);
+    
+    ws.onopen = () => {
+      setPeerStatus("Joined Room. Awaiting Peer...");
+      setIsMultiplayer(true);
+      setWsConnection(ws);
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type === "PEER_JOIN") {
+          setPeerStatus("Interviewer Connected");
+        } else if (payload.type === "PEER_LEFT") {
+          setPeerStatus("Peer Disconnected");
+        } else if (payload.type === "CODE_CHANGE") {
+          if (interviewActive) setInterviewCode(payload.code);
+          else setEditorCode(payload.code);
+        } else if (payload.type === "EXECUTION_RUN") {
+          setExecutionResult(payload.result);
+          if (payload.trace && payload.trace.length > 0) {
+            setTraceHistory(payload.trace);
+            setTraceIndex(0);
+          }
+        }
+      } catch (err) {
+        console.error("WebSocket message parse error:", err);
+      }
+    };
+    
+    ws.onclose = () => {
+      setPeerStatus("Disconnected");
+      setWsConnection(null);
+    };
+    
+    ws.onerror = () => {
+      setPeerStatus("Connection Error");
+      setWsConnection(null);
+    };
+  };
+
+  // V2 SVG interactive graph skills renderer
+  const renderSVGSkillsGraph = () => {
+    const nodes = [
+      { id: "variables", label: "Variables", x: 150, y: 35, mastery: conceptMastery["Variables"] || 100, unlocked: true },
+      { id: "loops", label: "Loops", x: 150, y: 115, mastery: conceptMastery["Loops"] || 44, unlocked: true },
+      { id: "functions", label: "Functions", x: 150, y: 195, mastery: conceptMastery["Functions"] || 12, unlocked: true },
+      { id: "recursion", label: "Recursion", x: 150, y: 275, mastery: conceptMastery["Recursion"] || 0, unlocked: conceptMastery["Functions"] >= 60 }
+    ];
+
+    return (
+      <svg viewBox="0 0 300 330" className="w-full h-auto bg-zinc-950/40 border border-zinc-900 rounded-2xl p-4 shadow-inner">
+        {/* Connection Paths */}
+        <line x1="150" y1="35" x2="150" y2="115" stroke="#3f3f46" strokeWidth="2.5" strokeDasharray={nodes[1].unlocked ? "" : "5"} />
+        <line x1="150" y1="115" x2="150" y2="195" stroke="#3f3f46" strokeWidth="2.5" strokeDasharray={nodes[2].unlocked ? "" : "5"} />
+        <line x1="150" y1="195" x2="150" y2="275" stroke="#3f3f46" strokeWidth="2.5" strokeDasharray={nodes[3].unlocked ? "" : "5"} />
+
+        {/* Nodes map */}
+        {nodes.map((node) => {
+          const isSelected = selectedTopic === node.id;
+          return (
+            <g 
+              key={node.id} 
+              className="cursor-pointer group select-none"
+              onClick={() => {
+                if (node.unlocked) {
+                  handleStartLesson(node.id);
+                } else {
+                  alert(`Complete ${node.id === "recursion" ? "Functions (requires >=60% mastery)" : "previous steps"} first!`);
+                }
+              }}
+            >
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r="22"
+                fill={node.unlocked ? (isSelected ? "rgba(79, 70, 229, 0.15)" : "#09090b") : "#030303"}
+                stroke={node.unlocked ? (isSelected ? "#818cf8" : "#27272a") : "#18181b"}
+                strokeWidth="2.5"
+                className="transition-all duration-300 group-hover:stroke-indigo-400 group-hover:scale-105"
+              />
+              
+              {!node.unlocked && (
+                <text x={node.x} y={node.y + 4} textAnchor="middle" fill="#3f3f46" className="text-xs">🔒</text>
+              )}
+              {node.unlocked && node.mastery >= 80 && (
+                <circle cx={node.x + 13} cy={node.y - 13} r="5" fill="#10b981" />
+              )}
+              
+              {/* Text elements */}
+              <text
+                x={node.x}
+                y={node.y + 36}
+                textAnchor="middle"
+                fill={node.unlocked ? "#e4e4e7" : "#3f3f46"}
+                className="text-[10px] font-bold font-sans tracking-tight"
+              >
+                {node.label}
+              </text>
+              <text
+                x={node.x}
+                y={node.y + 4}
+                textAnchor="middle"
+                fill={node.unlocked ? "#a1a1aa" : "#27272a"}
+                className="text-[8px] font-mono font-bold"
+              >
+                {node.unlocked ? `${node.mastery}%` : ""}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
   };
 
   // Resume State
@@ -614,6 +804,32 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* V2 Leitner Spaced Repetition Review Queue */}
+                  {reviewQueue.length > 0 && (
+                    <div className="bg-zinc-900/40 border border-indigo-950/60 p-5 rounded-2xl space-y-3">
+                      <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-wider font-mono">
+                        <Flame className="h-4 w-4" />
+                        <span>Spaced Repetition Queue</span>
+                      </div>
+                      <div className="space-y-2">
+                        {reviewQueue.map((item) => (
+                          <div key={item.topic_id} className="p-3 bg-zinc-950/60 border border-zinc-900 rounded-xl flex items-center justify-between gap-3 text-xs">
+                            <div>
+                              <span className="font-bold text-white block">{item.title}</span>
+                              <span className="text-[10px] text-zinc-500 block leading-tight mt-0.5">{item.reason}</span>
+                            </div>
+                            <button
+                              onClick={() => handleStartLesson(item.topic_id)}
+                              className="px-2.5 py-1.5 bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500 text-indigo-300 hover:text-white rounded-lg font-bold text-[10px] transition-colors shrink-0"
+                            >
+                              Review Now
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                       <Compass className="h-5 w-5 text-indigo-400" />
@@ -754,7 +970,7 @@ export default function App() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleStartLesson("functions")}
-                        className={`flex-1 text-center py-2 rounded-lg text-xs font-bold border transition-colors ${
+                        className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-colors ${
                           selectedTopic === "functions"
                             ? "bg-indigo-500/10 border-indigo-500 text-white"
                             : "bg-transparent border-zinc-900 text-zinc-400 hover:border-zinc-800"
@@ -764,7 +980,7 @@ export default function App() {
                       </button>
                       <button
                         onClick={() => handleStartLesson("loops")}
-                        className={`flex-1 text-center py-2 rounded-lg text-xs font-bold border transition-colors ${
+                        className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-colors ${
                           selectedTopic === "loops"
                             ? "bg-indigo-500/10 border-indigo-500 text-white"
                             : "bg-transparent border-zinc-900 text-zinc-400 hover:border-zinc-800"
@@ -839,7 +1055,6 @@ export default function App() {
                               <div className="bg-zinc-950 border border-zinc-900 rounded-xl p-4 min-h-[160px] flex flex-col justify-center items-center relative overflow-hidden font-mono">
                                 {traceHistory.map((frame, idx) => {
                                   if (frame.event === "call" && idx <= traceIndex) {
-                                    // Calculate stack depth offset
                                     const offset = (frame.depth - 1) * 8;
                                     return (
                                       <div 
@@ -857,9 +1072,6 @@ export default function App() {
                                   }
                                   return null;
                                 })}
-                                {traceHistory.length === 0 && (
-                                  <span className="text-xs text-zinc-600">Run code in sandbox to unlock trace logs.</span>
-                                )}
                               </div>
 
                               {/* Details below framework */}
@@ -907,32 +1119,10 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* Interactive Concept Map */}
+                      {/* V2 SVG Concept Graph Skills Tree Graph */}
                       <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-3">
                         <span className="text-xs uppercase font-mono text-zinc-500 tracking-wider">Concept Graph Nodes</span>
-                        <div className="space-y-2">
-                          {[
-                            { name: "Variables", req: "Variables", unlocked: true },
-                            { name: "Loops", req: "Loops", unlocked: conceptMastery["Loops"] > 0 },
-                            { name: "Functions", req: "Functions", unlocked: conceptMastery["Functions"] > 0 },
-                            { name: "Recursion", req: "Recursion", unlocked: conceptMastery["Functions"] >= 60 }
-                          ].map((node) => (
-                            <div 
-                              key={node.name}
-                              className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                                node.unlocked 
-                                  ? "bg-indigo-950/10 border-indigo-900/20 text-indigo-300 font-semibold"
-                                  : "bg-zinc-950/20 border-zinc-900 text-zinc-600"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                {node.unlocked ? <Unlock className="h-3.5 w-3.5 text-indigo-400" /> : <Lock className="h-3.5 w-3.5 text-zinc-700" />}
-                                <span>{node.name}</span>
-                              </div>
-                              <span className="font-mono text-[10px] text-zinc-500">{conceptMastery[node.req]}% Mastery</span>
-                            </div>
-                          ))}
-                        </div>
+                        {renderSVGSkillsGraph()}
                       </div>
                     </>
                   ) : null}
@@ -1083,11 +1273,11 @@ export default function App() {
                           {/* Interactive Skiena Video Integration */}
                           <div className="p-4 bg-indigo-950/10 border border-indigo-900/20 rounded-xl space-y-3">
                             <span className="text-xs uppercase font-mono text-indigo-300 font-bold block">Steven Skiena Lecture (Integration)</span>
-                            <p className="text-[11px] text-zinc-400 leading-relaxed">We have mapped the matching video frame segment (12:40 ➔ 18:15) of Skiena's Recursion Lecture.</p>
+                            <p className="text-[11px] text-zinc-400 leading-relaxed">We have mapped the matching video frame segment (12:40 ➔ 18:15) of Skiena's Lecture.</p>
                             
                             {!skienaQuestionAnswered ? (
                               <div className="space-y-2">
-                                <span className="text-xs font-semibold text-white block">AI pause checkpoint: What data structure does the computer use to trace recursive function returns?</span>
+                                <span className="text-xs font-semibold text-white block">AI pause checkpoint: What data structure does the computer use to trace function returns?</span>
                                 <div className="flex gap-2">
                                   <input 
                                     type="text" 
@@ -1101,7 +1291,7 @@ export default function App() {
                                       if (skienaAnswer.toLowerCase().includes("stack")) {
                                         setSkienaQuestionAnswered(true);
                                       } else {
-                                        alert("Try again! What structure piles plates on top of each other?");
+                                        alert("Try again!");
                                       }
                                     }}
                                     className="px-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs rounded-lg transition-colors"
@@ -1313,7 +1503,6 @@ export default function App() {
                     <button
                       disabled={currentStepIndex === LESSON_FLOW.length - 1}
                       onClick={() => {
-                        // Check states block
                         if (LESSON_FLOW[currentStepIndex] === "PREDICT" && !predictionSubmitted) {
                           alert("Submit your prediction first!");
                           return;
@@ -1342,7 +1531,6 @@ export default function App() {
                         setCurrentStepIndex(currentStepIndex + 1);
                         setActiveHint("");
                         
-                        // Overwrite template for next challenge if transition to challenge
                         if (LESSON_FLOW[currentStepIndex + 1] === "CHALLENGE" && lessonDefinition) {
                           const chalState = lessonDefinition.states.find((s: any) => s.type === "challenge");
                           if (chalState) {
@@ -1367,18 +1555,41 @@ export default function App() {
                     <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
                       <div className="flex items-center gap-2 text-xs">
                         <Code className="h-4 w-4 text-indigo-400" />
-                        <span className="font-bold text-white font-mono">sandbox.py</span>
+                        <span className="font-bold text-white font-mono">sandbox</span>
+                        <span className="text-[10px] text-zinc-500 font-mono italic">(Multi-Runner Sandbox Active)</span>
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">Python 3.x</span>
+                      
+                      {/* V2 WebSockets Multiplayer Button */}
+                      <button
+                        onClick={() => {
+                          const rId = prompt("Enter multiplayer Interview Room ID to sync workspace (e.g. room-5):");
+                          if (rId) {
+                            setRoomId(rId);
+                            joinMultiplayerWorkspace();
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold font-mono transition-colors flex items-center gap-1 border ${
+                          isMultiplayer
+                            ? "bg-emerald-950/20 border-emerald-900/40 text-emerald-400"
+                            : "bg-zinc-950 border-zinc-900 text-zinc-400 hover:border-zinc-700"
+                        }`}
+                      >
+                        <Users className="h-3 w-3" />
+                        {isMultiplayer ? "Multiplayer Linked" : "Go Multiplayer"}
+                      </button>
                     </div>
+
+                    {isMultiplayer && (
+                      <div className="flex items-center justify-between bg-zinc-950/80 border border-zinc-900 rounded-xl px-3.5 py-2 text-[10px] font-mono">
+                        <span className="text-zinc-500">Room Status:</span>
+                        <span className="text-indigo-400 font-bold animate-pulse">{peerStatus}</span>
+                      </div>
+                    )}
 
                     <div className="relative flex-1 flex flex-col">
                       <textarea
                         value={interviewActive ? interviewCode : editorCode}
-                        onChange={(e) => {
-                          if (interviewActive) setInterviewCode(e.target.value);
-                          else setEditorCode(e.target.value);
-                        }}
+                        onChange={(e) => handleCodeChange(e.target.value)}
                         className="w-full flex-1 bg-zinc-950 border border-zinc-900 rounded-xl p-4 text-xs font-mono text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
                         style={{ tabSize: 4 }}
                       />
@@ -1494,7 +1705,7 @@ export default function App() {
 
                     {/* Hint overlay message */}
                     {!interviewActive && activeHint && (
-                      <div className="p-3.5 bg-zinc-950 border border-indigo-500/20 rounded-xl text-xs flex gap-2.5 text-indigo-200 mt-2 animate-fadeIn">
+                      <div className="p-3.5 bg-zinc-955 border border-indigo-500/20 rounded-xl text-xs flex gap-2.5 text-indigo-200 mt-2 animate-fadeIn">
                         <Sparkles className="h-4.5 w-4.5 text-indigo-400 shrink-0 mt-0.5" />
                         <div>
                           <span className="font-extrabold uppercase tracking-wider text-[9px] text-indigo-400 font-mono block">Progressive Hint ({hintType.toUpperCase()})</span>
@@ -1624,11 +1835,11 @@ export default function App() {
 
                       {/* Flag box if tutorial clone */}
                       {resumeAnalysis.is_tutorial_clone && (
-                        <div className="p-4 bg-amber-950/20 border border-amber-900/40 rounded-xl text-amber-300 text-xs flex gap-3">
+                        <div className="p-4 bg-amber-955/20 border border-amber-900/40 rounded-xl text-amber-300 text-xs flex gap-3">
                           <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
                           <div>
                             <span className="font-extrabold block uppercase tracking-wider font-mono">Tutorial Clone Flagged!</span>
-                            <p className="leading-relaxed mt-1">This repository appears to be a standard tutorial clone or basic dashboard template. Hiring managers see thousands of these. Read our "What to build next" guide below to add unique features.</p>
+                            <p className="leading-relaxed mt-1">This repository appears to be a standard tutorial clone or basic dashboard template. Hiring managers see thousands of these. Read our \"What to build next\" guide below to add unique features.</p>
                           </div>
                         </div>
                       )}
@@ -1684,7 +1895,7 @@ export default function App() {
                   ) : (
                     <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 text-center text-zinc-500 flex flex-col items-center justify-center min-h-[400px]">
                       <FileText className="h-10 w-10 text-zinc-700 mb-3" />
-                      <p className="text-sm font-medium">Configure project details and click "Analyze Project" on the left.</p>
+                      <p className="text-sm font-medium">Configure project details and click \"Analyze Project\" on the left.</p>
                     </div>
                   )}
                 </div>
