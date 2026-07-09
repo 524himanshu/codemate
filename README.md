@@ -27,6 +27,12 @@ CodeMate is an AI-powered Career Operating System designed to take self-taught d
 
 ---
 
+### 5. Cross-Project Integrations (V3)
+- **DrishtiAI PII Redactor**: Automatically sanitizes sensitive candidate information (emails, phone numbers, and street address structures) using local regex shields before routing data to public LLM endpoints.
+- **RecruitIQ Job Fit Scorer**: Evaluates semantic vector similarity (30%), technical skill overlap (40%), and YOE/Title matches (30%) of candidate resumes relative to target Job Descriptions.
+
+---
+
 ## 📂 Workspace Structure
 
 - `/frontend`: Next.js web application built with App Router, TypeScript, and Lucide Icons.
