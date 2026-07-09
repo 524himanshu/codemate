@@ -2,16 +2,31 @@ import json
 import logging
 import httpx
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
 from app.models.resume import ResumeRequest, ProjectAnalysisSchema
 from app.services.gemini_service import gemini_service
+from app.services.redact_service import pii_redactor
 
 router = APIRouter()
 logger = logging.getLogger("codemate.resume")
 
+class FitScoreRequest(BaseModel):
+    user_id: str
+    github_url: str
+    resume_text: str
+    job_description: str
+
+class FitScoreResponse(BaseModel):
+    fit_score: int
+    semantic_match: int
+    skills_match: int
+    experience_fit: int
+    feedback: str
+    skills_detected: List[str]
+    missing_skills: List[str]
+
 def parse_github_url(url: str):
-    """
-    Parses a GitHub URL like https://github.com/owner/repo to extract owner and repo name.
-    """
     cleaned_url = url.replace("https://github.com/", "").replace("http://github.com/", "").strip("/")
     parts = cleaned_url.split("/")
     if len(parts) >= 2:
@@ -19,10 +34,6 @@ def parse_github_url(url: str):
     return None, None
 
 async def fetch_readme(owner: str, repo: str) -> str:
-    """
-    Fetches the README file from a public GitHub repo.
-    """
-    # Try common branch names: main, then master
     branches = ["main", "master"]
     async with httpx.AsyncClient() as client:
         for branch in branches:
@@ -36,7 +47,6 @@ async def fetch_readme(owner: str, repo: str) -> str:
     return ""
 
 def get_mock_resume_analysis(repo: str, desc: str, role: str) -> dict:
-    """Generates premium mock resume bullets and project analysis for local testing."""
     repo_title = repo.replace("-", " ").title() if repo else "My Project"
     return {
         "project_name": repo_title,
@@ -58,7 +68,8 @@ def get_mock_resume_analysis(repo: str, desc: str, role: str) -> dict:
 async def generate_resume(request: ResumeRequest):
     user_id = request.user_id
     github_url = request.github_url
-    project_description = request.project_description or ""
+    # Scrub PII in user input description
+    project_description = pii_redactor.redact(request.project_description or "")
     target_role = request.target_role
 
     owner, repo = parse_github_url(github_url)
@@ -73,7 +84,6 @@ async def generate_resume(request: ResumeRequest):
         logger.info("Gemini service is in mock mode. Returning mock resume bullets.")
         return get_mock_resume_analysis(repo, project_description, target_role)
 
-    # Prepare prompt for real Gemini
     context_details = f"GitHub Repo: {github_url}\n"
     if readme_content:
         context_details += f"Extracted README:\n{readme_content[:1500]}\n"
@@ -108,5 +118,59 @@ async def generate_resume(request: ResumeRequest):
         return json.loads(response_text)
     except Exception as e:
         logger.error(f"Error calling Gemini for resume builder: {e}")
-        # Fallback to mock on error
         return get_mock_resume_analysis(repo, project_description, target_role)
+
+@router.post("/fit-score", response_model=FitScoreResponse)
+async def evaluate_job_fit(request: FitScoreRequest):
+    # Scrub PII in candidate resume and job description inputs
+    sanitized_resume = pii_redactor.redact(request.resume_text)
+    sanitized_jd = pii_redactor.redact(request.job_description)
+    
+    mock_response = FitScoreResponse(
+        fit_score=75,
+        semantic_match=78,
+        skills_match=70,
+        experience_fit=80,
+        feedback="The candidate shows strong matching technical profiles, but lacks cloud architecture experiences.",
+        skills_detected=["Python", "FastAPI", "PostgreSQL", "Docker"],
+        missing_skills=["Kubernetes", "AWS CloudFormation", "Terraform"]
+    )
+
+    if gemini_service.is_mock():
+        return mock_response
+
+    prompt = f"""
+    Evaluate the following candidate's resume against the Job Description:
+    
+    Candidate Resume Details (PII Redacted):
+    {sanitized_resume}
+    
+    Job Description Details (PII Redacted):
+    {sanitized_jd}
+    
+    Tasks:
+    1. Calculate a weighted overall 'fit_score' out of 100 based on three components:
+       - Semantic Match (weighted 30%): Cosine/meaning relevance of experiences.
+       - Skills Match (weighted 40%): Tech skills overlap count.
+       - Experience Fit (weighted 30%): YOE suitability and title alignments.
+    2. Extract detected skills and identify missing skills explicitly required by the JD.
+    3. Generate brief constructive feedback (under 80 words) listing how they can improve their fit score.
+    
+    Ensure you output valid JSON matching the schema.
+    """
+
+    system_instruction = (
+        "You are an expert candidate matching engine scoring resumes against job descriptions "
+        "using semantic similarities, tech skills mappings, and YOE relevance. Return a structured JSON response."
+    )
+
+    try:
+        response_text = await gemini_service.generate_structured_json(
+            prompt=prompt,
+            response_schema=FitScoreResponse,
+            system_instruction=system_instruction
+        )
+        return json.loads(response_text)
+    except Exception as e:
+        logger.error(f"Error evaluating candidate job fit: {e}")
+        return mock_response

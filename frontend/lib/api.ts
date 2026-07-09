@@ -193,4 +193,23 @@ export const api = {
     }
     return res.json();
   },
+
+  async checkJobFit(userId: string, githubUrl: string, resumeText: string, jobDescription: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/resume/fit-score`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        github_url: githubUrl,
+        resume_text: resumeText,
+        job_description: jobDescription
+      }),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to evaluate job fit score");
+    }
+    return res.json();
+  },
 };

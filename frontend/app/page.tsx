@@ -582,6 +582,28 @@ export default function App() {
     }
   };
 
+  // V3 Job Fit Scorer State
+  const [resumeTab, setResumeTab] = useState<"analyze" | "fit">("analyze");
+  const [resumeText, setResumeText] = useState<string>("");
+  const [jobDescription, setJobDescription] = useState<string>("");
+  const [fitAnalysis, setFitAnalysis] = useState<any>(null);
+  const [fitLoading, setFitLoading] = useState<boolean>(false);
+
+  const handleFitSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!githubUrl.trim() || !resumeText.trim() || !jobDescription.trim()) return;
+    setFitLoading(true);
+    setFitAnalysis(null);
+    try {
+      const result = await api.checkJobFit(userId, githubUrl, resumeText, jobDescription);
+      setFitAnalysis(result);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setFitLoading(false);
+    }
+  };
+
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
     const remaining = secs % 60;
@@ -1862,186 +1884,357 @@ export default function App() {
               </div>
             )}
 
-            {/* RESUME BUILDER TAB */}
+                        {/* RESUME BUILDER TAB */}
             {activeTab === "resume" && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Form column */}
-                <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-5 h-fit">
-                  <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-indigo-400" />
-                      Project Bullet Analyzer
-                    </h3>
-                    <p className="text-zinc-500 text-xs mt-1 leading-relaxed">
-                      Enter your public GitHub repo URL. Gemini will inspect your README and generate verified, impact-driven resume bullets.
-                    </p>
-                  </div>
+              <div className="flex flex-col gap-6 w-full">
+                
+                {/* Tab Switcher */}
+                <div className="flex bg-zinc-900 p-1.5 rounded-2xl w-fit">
+                  <button
+                    type="button"
+                    onClick={() => setResumeTab("analyze")}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                      resumeTab === "analyze"
+                        ? "bg-zinc-800 text-white shadow-sm"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    <FileText className="h-4 w-4" />
+                    Project Bullet Analyzer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setResumeTab("fit")}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                      resumeTab === "fit"
+                        ? "bg-zinc-800 text-white shadow-sm"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    <Users className="h-4 w-4" />
+                    Verify Job Fit (RecruitIQ Engine)
+                  </button>
+                </div>
 
-                  <form onSubmit={handleResumeSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">GitHub Repo URL</label>
-                      <div className="relative">
-                        <svg className="absolute left-3 top-3.5 h-4.5 w-4.5 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-                        </svg>
-                        <input
-                          type="url"
-                          required
-                          value={githubUrl}
-                          onChange={(e) => setGithubUrl(e.target.value)}
-                          placeholder="https://github.com/username/project"
-                          className="w-full bg-zinc-955 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors"
-                        />
+                {resumeTab === "analyze" ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Form column */}
+                    <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-5 h-fit">
+                      <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-indigo-400" />
+                          Project Bullet Analyzer
+                        </h3>
+                        <p className="text-zinc-500 text-xs mt-1 leading-relaxed">
+                          Enter your public GitHub repo URL. Gemini will inspect your README and generate verified, impact-driven resume bullets.
+                        </p>
                       </div>
+
+                      <form onSubmit={handleResumeSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">GitHub Repo URL</label>
+                          <div className="relative">
+                            <svg className="absolute left-3 top-3.5 h-4.5 w-4.5 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                            </svg>
+                            <input
+                              type="url"
+                              required
+                              value={githubUrl}
+                              onChange={(e) => setGithubUrl(e.target.value)}
+                              placeholder="https://github.com/username/project"
+                              className="w-full bg-zinc-955 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Target Role</label>
+                          <select
+                            value={resumeTargetRole}
+                            onChange={(e) => setResumeTargetRole(e.target.value)}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-zinc-350 focus:outline-none focus:border-indigo-500 transition-colors"
+                          >
+                            <option value="frontend">Frontend Developer</option>
+                            <option value="backend">Backend Engineer</option>
+                            <option value="fullstack">Fullstack Engineer</option>
+                            <option value="ai_ml">AI/ML Engineer</option>
+                            <option value="devops">DevOps Engineer</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Project Description (Optional)</label>
+                          <textarea
+                            value={projectDesc}
+                            onChange={(e) => setProjectDesc(e.target.value)}
+                            placeholder="Detail any key features or optimizations you made (e.g. built using Redis caching, handled 20 requests/sec)"
+                            rows={3}
+                            className="w-full bg-zinc-955 border border-zinc-800 rounded-xl p-4 text-sm text-white placeholder-zinc-750 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={resumeLoading}
+                          className="w-full py-3 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all duration-200"
+                        >
+                          {resumeLoading ? (
+                            <>
+                              <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                              Inspecting Repo Content...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4.5 w-4.5" />
+                              Analyze Project
+                            </>
+                          )}
+                        </button>
+                      </form>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Target Role</label>
-                      <select
-                        value={resumeTargetRole}
-                        onChange={(e) => setResumeTargetRole(e.target.value)}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-zinc-350 focus:outline-none focus:border-indigo-500 transition-colors"
-                      >
-                        <option value="frontend">Frontend Developer</option>
-                        <option value="backend">Backend Engineer</option>
-                        <option value="fullstack">Fullstack Engineer</option>
-                        <option value="ai_ml">AI/ML Engineer</option>
-                        <option value="devops">DevOps Engineer</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Project Description (Optional)</label>
-                      <textarea
-                        value={projectDesc}
-                        onChange={(e) => setProjectDesc(e.target.value)}
-                        placeholder="Detail any key features or optimizations you made (e.g. built using Redis caching, handled 20 requests/sec)"
-                        rows={3}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={resumeLoading}
-                      className="w-full py-3 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all duration-200"
-                    >
+                    {/* Output analysis column */}
+                    <div className="lg:col-span-2">
                       {resumeLoading ? (
-                        <>
-                          <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                          Inspecting Repo Content...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4.5 w-4.5" />
-                          Analyze Project
-                        </>
-                      )}
-                    </button>
-                  </form>
-                </div>
-
-                {/* Output analysis column */}
-                <div className="lg:col-span-2">
-                  {resumeLoading ? (
-                    <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 flex flex-col items-center justify-center min-h-[400px]">
-                      <Loader2 className="h-8 w-8 text-indigo-500 animate-spin mb-4" />
-                      <p className="text-zinc-500 text-sm font-mono">AI Coach is reviewing your README files...</p>
-                      <p className="text-xs text-zinc-600 mt-1 max-w-sm text-center leading-relaxed">This fetches your repository details and parses code complexity variables to score originality.</p>
-                    </div>
-                  ) : resumeAnalysis ? (
-                    <div className="space-y-6 animate-fadeIn">
-                      {/* Metric cards */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl flex items-center justify-between">
-                          <div>
-                            <span className="text-xs font-mono text-zinc-500">ORIGINALITY SCORE</span>
-                            <h4 className="text-2xl font-extrabold text-white mt-1">{resumeAnalysis.originality_score}/10</h4>
-                          </div>
-                          <span className={`text-2xl h-10 w-10 rounded-xl flex items-center justify-center font-bold ${
-                            resumeAnalysis.originality_score >= 7 ? "bg-emerald-950/30 text-emerald-400" : "bg-amber-950/30 text-amber-400"
-                          }`}>
-                            {resumeAnalysis.originality_score >= 7 ? "✓" : "!"}
-                          </span>
+                        <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 flex flex-col items-center justify-center min-h-[400px]">
+                          <Loader2 className="h-8 w-8 text-indigo-500 animate-spin mb-4" />
+                          <p className="text-zinc-550 text-sm font-mono">AI Coach is reviewing your README files...</p>
+                          <p className="text-xs text-zinc-650 mt-1 max-w-sm text-center leading-relaxed">This fetches your repository details and parses code complexity variables to score originality.</p>
                         </div>
-
-                        <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl flex items-center justify-between">
-                          <div>
-                            <span className="text-xs font-mono text-zinc-500">COMPLEXITY SCORE</span>
-                            <h4 className="text-2xl font-extrabold text-white mt-1">{resumeAnalysis.complexity_score}/10</h4>
-                          </div>
-                          <span className="text-2xl h-10 w-10 rounded-xl bg-indigo-950/30 text-indigo-400 flex items-center justify-center font-bold">
-                            ⚙
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Flag box if tutorial clone */}
-                      {resumeAnalysis.is_tutorial_clone && (
-                        <div className="p-4 bg-amber-955/20 border border-amber-900/40 rounded-xl text-amber-300 text-xs flex gap-3">
-                          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
-                          <div>
-                            <span className="font-extrabold block uppercase tracking-wider font-mono">Tutorial Clone Flagged!</span>
-                            <p className="leading-relaxed mt-1">This repository appears to be a standard tutorial clone or basic dashboard template. Hiring managers see thousands of these. Read our \"What to build next\" guide below to add unique features.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Main Bullet points */}
-                      <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-4">
-                        <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
-                          <h4 className="font-bold text-white text-sm">Resume Bullet Points (Impact-Driven)</h4>
-                          <span className="text-xs text-zinc-500 font-mono">Copy to clipboard</span>
-                        </div>
-
-                        <div className="space-y-3">
-                          {resumeAnalysis.generated_bullets.map((bullet: string, idx: number) => (
-                            <div key={idx} className="group relative bg-zinc-950/40 border border-zinc-900 p-4 rounded-xl flex items-start justify-between gap-4 hover:border-zinc-800 transition-colors">
-                              <p className="text-sm text-zinc-300 leading-relaxed pr-8">{bullet}</p>
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(bullet);
-                                  setCopiedIndex(idx);
-                                  setTimeout(() => setCopiedIndex(null), 2000);
-                                }}
-                                className="absolute right-3 top-3.5 h-8 w-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
-                              >
-                                {copiedIndex === idx ? (
-                                  <Check className="h-4 w-4 text-emerald-400" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
-                              </button>
+                      ) : resumeAnalysis ? (
+                        <div className="space-y-6 animate-fadeIn">
+                          {/* Metric cards */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl flex items-center justify-between">
+                              <div>
+                                <span className="text-xs font-mono text-zinc-500">ORIGINALITY SCORE</span>
+                                <h4 className="text-2xl font-extrabold text-white mt-1">{resumeAnalysis.originality_score}/10</h4>
+                              </div>
+                              <span className={`text-2xl h-10 w-10 rounded-xl flex items-center justify-center font-bold ${
+                                resumeAnalysis.originality_score >= 7 ? "bg-emerald-950/30 text-emerald-400" : "bg-amber-950/30 text-amber-400"
+                              }`}>
+                                {resumeAnalysis.originality_score >= 7 ? "✓" : "!"}
+                              </span>
                             </div>
-                          ))}
+
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl flex items-center justify-between">
+                              <div>
+                                <span className="text-xs font-mono text-zinc-500">COMPLEXITY SCORE</span>
+                                <h4 className="text-2xl font-extrabold text-white mt-1">{resumeAnalysis.complexity_score}/10</h4>
+                              </div>
+                              <span className="text-2xl h-10 w-10 rounded-xl bg-indigo-955/30 text-indigo-450 flex items-center justify-center font-bold">
+                                ⚙
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Flag box if tutorial clone */}
+                          {resumeAnalysis.is_tutorial_clone && (
+                            <div className="p-4 bg-amber-955/20 border border-amber-900/40 rounded-xl text-amber-300 text-xs flex gap-3">
+                              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+                              <div>
+                                <span className="font-extrabold block uppercase tracking-wider font-mono">Tutorial Clone Flagged!</span>
+                                <p className="leading-relaxed mt-1">This repository appears to be a standard tutorial clone or basic dashboard template. Hiring managers see thousands of these. Read our "What to build next" guide below to add unique features.</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Main Bullet points */}
+                          <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-4">
+                            <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+                              <h4 className="font-bold text-white text-sm">Resume Bullet Points (Impact-Driven)</h4>
+                              <span className="text-xs text-zinc-500 font-mono">Copy to clipboard</span>
+                            </div>
+
+                            <div className="space-y-3">
+                              {resumeAnalysis.generated_bullets.map((bullet: string, idx: number) => (
+                                <div key={idx} className="group relative bg-zinc-955/40 border border-zinc-900 p-4 rounded-xl flex items-start justify-between gap-4 hover:border-zinc-800 transition-colors">
+                                  <p className="text-sm text-zinc-300 leading-relaxed pr-8">{bullet}</p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(bullet);
+                                      setCopiedIndex(idx);
+                                      setTimeout(() => setCopiedIndex(null), 2000);
+                                    }}
+                                    className="absolute right-3 top-3.5 h-8 w-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
+                                  >
+                                    {copiedIndex === idx ? (
+                                      <Check className="h-4 w-4 text-emerald-400" />
+                                    ) : (
+                                      <Copy className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Strength / Critique */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-2">
+                              <span className="text-xs uppercase tracking-widest font-mono text-emerald-400 font-bold">Strengths</span>
+                              <p className="text-xs text-zinc-400 leading-relaxed">{resumeAnalysis.strength_feedback}</p>
+                            </div>
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-2">
+                              <span className="text-xs uppercase tracking-widest font-mono text-amber-400 font-bold">Weaknesses</span>
+                              <p className="text-xs text-zinc-400 leading-relaxed">{resumeAnalysis.weakness_feedback}</p>
+                            </div>
+                          </div>
+
+                          {/* What to build next */}
+                          <div className="bg-indigo-950/10 border border-indigo-900/20 p-5 rounded-2xl space-y-3">
+                            <span className="text-xs uppercase tracking-widest font-mono text-indigo-400 font-bold block">Next Engineering Steps (Level Up)</span>
+                            <p className="text-xs text-zinc-350 leading-relaxed">{resumeAnalysis.next_steps}</p>
+                          </div>
                         </div>
+                      ) : (
+                        <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 text-center text-zinc-500 flex flex-col items-center justify-center min-h-[400px]">
+                          <FileText className="h-10 w-10 text-zinc-700 mb-3" />
+                          <p className="text-sm font-medium">Configure project details and click "Analyze Project" on the left.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
+                    {/* Form column */}
+                    <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-5 h-fit">
+                      <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                          <Users className="h-5 w-5 text-indigo-400" />
+                          Verify Job Fit
+                        </h3>
+                        <p className="text-zinc-500 text-xs mt-1 leading-relaxed">
+                          Paste your resume text and target Job Description. The RecruitIQ engine will execute semantic vector alignment checks (PII Redacted).
+                        </p>
                       </div>
 
-                      {/* Strength / Critique */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-2">
-                          <span className="text-xs uppercase tracking-widest font-mono text-emerald-400 font-bold">Strengths</span>
-                          <p className="text-xs text-zinc-400 leading-relaxed">{resumeAnalysis.strength_feedback}</p>
+                      <form onSubmit={handleFitSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">GitHub Project URL</label>
+                          <input
+                            type="url"
+                            required
+                            value={githubUrl}
+                            onChange={(e) => setGithubUrl(e.target.value)}
+                            placeholder="https://github.com/username/project"
+                            className="w-full bg-zinc-955 border border-zinc-800 rounded-xl py-3 px-4 text-sm text-white placeholder-zinc-705 focus:outline-none focus:border-indigo-500 transition-colors"
+                          />
                         </div>
-                        <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-2">
-                          <span className="text-xs uppercase tracking-widest font-mono text-amber-400 font-bold">Weaknesses</span>
-                          <p className="text-xs text-zinc-400 leading-relaxed">{resumeAnalysis.weakness_feedback}</p>
-                        </div>
-                      </div>
 
-                      {/* What to build next */}
-                      <div className="bg-indigo-950/10 border border-indigo-900/20 p-5 rounded-2xl space-y-3">
-                        <span className="text-xs uppercase tracking-widest font-mono text-indigo-400 font-bold block">Next Engineering Steps (Level Up)</span>
-                        <p className="text-xs text-zinc-300 leading-relaxed">{resumeAnalysis.next_steps}</p>
-                      </div>
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Your Resume Text</label>
+                          <textarea
+                            required
+                            value={resumeText}
+                            onChange={(e) => setResumeText(e.target.value)}
+                            placeholder="Paste your plain text resume content here..."
+                            rows={4}
+                            className="w-full bg-zinc-955 border border-zinc-800 rounded-xl p-4 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Job Description (JD)</label>
+                          <textarea
+                            required
+                            value={jobDescription}
+                            onChange={(e) => setJobDescription(e.target.value)}
+                            placeholder="Paste the target job description details here..."
+                            rows={4}
+                            className="w-full bg-zinc-955 border border-zinc-800 rounded-xl p-4 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={fitLoading}
+                          className="w-full py-3 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all duration-200"
+                        >
+                          {fitLoading ? (
+                            <>
+                              <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                              Running Matcher...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4.5 w-4.5" />
+                              Calculate Fit Score
+                            </>
+                          )}
+                        </button>
+                      </form>
                     </div>
-                  ) : (
-                    <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 text-center text-zinc-500 flex flex-col items-center justify-center min-h-[400px]">
-                      <FileText className="h-10 w-10 text-zinc-700 mb-3" />
-                      <p className="text-sm font-medium">Configure project details and click \"Analyze Project\" on the left.</p>
+
+                    {/* Output column */}
+                    <div className="lg:col-span-2">
+                      {fitLoading ? (
+                        <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 flex flex-col items-center justify-center min-h-[400px]">
+                          <Loader2 className="h-8 w-8 text-indigo-500 animate-spin mb-4" />
+                          <p className="text-zinc-550 text-sm font-mono">RecruitIQ: Processing multi-signal alignments...</p>
+                          <p className="text-xs text-zinc-650 mt-1 max-w-sm text-center leading-relaxed">Calculating semantic match, skills overlap, and YOE bounds.</p>
+                        </div>
+                      ) : fitAnalysis ? (
+                        <div className="space-y-6 animate-fadeIn">
+                          
+                          {/* Gauge grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-indigo-955/20 border border-indigo-900/40 p-5 rounded-2xl text-center shadow-lg shadow-indigo-500/5">
+                              <span className="text-[10px] font-mono text-zinc-500 block">OVERALL FIT</span>
+                              <h4 className="text-2xl font-extrabold text-indigo-400 mt-1">{fitAnalysis.fit_score}%</h4>
+                            </div>
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl text-center">
+                              <span className="text-[10px] font-mono text-zinc-500 block">SEMANTIC MATCH</span>
+                              <h4 className="text-2xl font-extrabold text-white mt-1">{fitAnalysis.semantic_match}%</h4>
+                            </div>
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl text-center">
+                              <span className="text-[10px] font-mono text-zinc-500 block">SKILLS MATCH</span>
+                              <h4 className="text-2xl font-extrabold text-white mt-1">{fitAnalysis.skills_match}%</h4>
+                            </div>
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl text-center">
+                              <span className="text-[10px] font-mono text-zinc-500 block">YOE FIT</span>
+                              <h4 className="text-2xl font-extrabold text-white mt-1">{fitAnalysis.experience_fit}%</h4>
+                            </div>
+                          </div>
+
+                          {/* Actionable Feedback */}
+                          <div className="bg-zinc-900/30 border border-zinc-900 p-6 rounded-3xl space-y-2">
+                            <span className="text-xs uppercase font-mono text-indigo-400 font-bold block">AI Recruiter Feedback</span>
+                            <p className="text-xs text-zinc-350 leading-relaxed">{fitAnalysis.feedback}</p>
+                          </div>
+
+                          {/* Skill arrays */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-3">
+                              <span className="text-xs uppercase font-mono text-emerald-400 font-bold block">Detected Skills</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {fitAnalysis.skills_detected.map((s: string, i: number) => (
+                                  <span key={i} className="text-[10px] font-mono bg-emerald-955/20 border border-emerald-900/30 text-emerald-400 px-2 py-1 rounded-md">{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-3">
+                              <span className="text-xs uppercase font-mono text-amber-400 font-bold block">Missing Skills Required</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {fitAnalysis.missing_skills.map((s: string, i: number) => (
+                                  <span key={i} className="text-[10px] font-mono bg-amber-955/20 border border-amber-900/40 text-amber-350 px-2 py-1 rounded-md">{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+                      ) : (
+                        <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 text-center text-zinc-500 flex flex-col items-center justify-center min-h-[400px]">
+                          <Users className="h-10 w-10 text-zinc-700 mb-3" />
+                          <p className="text-sm font-medium">Input your resume text and target Job Description to inspect fit match ratings.</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
