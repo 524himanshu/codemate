@@ -1,0 +1,88 @@
+{
+  "lesson": {
+    "id": "functions",
+    "title": "Functions & Reusable Recipes",
+    "interview_coverage": {
+      "topic": "Functions",
+      "stars": 4,
+      "companies": ["Google", "TCS", "Uber", "Snowflake"]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 15,
+      "checklist": [
+        "Create custom reusable functions",
+        "Pass arguments (inputs) safely",
+        "Return values (outputs)",
+        "Understand recursion stack trees"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "Imagine writing the exact same login code 50 times across an application. What is the biggest engineering problem with this?",
+      "choices": [
+        "A: Maintenance nightmare. If the login logic changes, you must edit it in 50 places.",
+        "B: The computer runs out of memory storing duplicates.",
+        "C: Python will throw an IndentationError automatically."
+      ],
+      "correct_choice": "A",
+      "explanation": "Functions exist to prevent code duplication (the DRY principle: Don't Repeat Yourself). Modifying duplicate logic in 50 places is error-prone."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "The Cookie Recipe",
+      "analogy_description": "A function is like a recipe card. You write the recipe once. The ingredients you pass in are parameters. The actual cake that comes out of the oven is the return value. You don't rewrite the recipe card every time you want to bake a cake; you just run the recipe with new ingredients."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Call Stack Trace",
+        "description": "When a function is called, a new box (stack frame) is pushed onto the computer's memory stack. When it returns, the box is popped off.",
+        "steps": [
+          { "action": "push", "frame": "main()", "details": "Execution starts in main" },
+          { "action": "push", "frame": "bake_cookies(temp=350)", "details": "bake_cookies called. Temp parameter set to 350." },
+          { "action": "pop", "frame": "bake_cookies() -> 'Warm Cookies'", "details": " bake_cookies returns warm cookies. Frame destroyed." },
+          { "action": "pop", "frame": "main()", "details": "Program finished" }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Let's build your first recipe function. Write a function `greet(name)` that returns the greeting `Hello, name!` (with an exclamation mark). Make sure to return the string, not print it.",
+      "code_template": "def greet(name):\n    # Write your recipe here\n    pass",
+      "test_cases": [
+        { "input": "\"Himanshu\"", "expected": "Hello, Himanshu!" },
+        { "input": "\"Developer\"", "expected": "Hello, Developer!" }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Let's level up. Write a function `calculate_discount(price, discount_percent)` that takes the base price and discount percentage, and returns the final price after discount. If the discount is invalid (negative or greater than 100), return the original price.",
+      "code_template": "def calculate_discount(price, discount_percent):\n    # Your logic here\n    pass",
+      "test_cases": [
+        { "input": "100, 10", "expected": 90.0 },
+        { "input": "250, 20", "expected": 200.0 },
+        { "input": "80, -5", "expected": 80.0 },
+        { "input": "120, 150", "expected": 120.0 }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Now, explain functions and parameters to a junior developer who has never coded before. Use your own analogy."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        { "concept": "Functions", "increment": 25 },
+        { "concept": "Parameters", "increment": 20 }
+      ],
+      "flashcards": [
+        { "front": "What keyword is used to define a function in Python?", "back": "'def'" },
+        { "front": "What is the difference between print and return?", "back": "'print' outputs text to the screen; 'return' sends a value back to the caller to be saved or reused." }
+      ]
+    }
+  ]
+}

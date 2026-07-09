@@ -1,0 +1,89 @@
+{
+  "lesson": {
+    "id": "loops",
+    "title": "Loops & Repeating Actions",
+    "interview_coverage": {
+      "topic": "Loops",
+      "stars": 4,
+      "companies": ["Uber", "Google", "Amazon", "Cognizant"]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 15,
+      "checklist": [
+        "Use For loops to iterate collections",
+        "Use While loops for conditional execution",
+        "Avoid infinite loop execution locks",
+        "Trace loop counters on the whiteboard"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "If you have a loop running 'while True:', what will cause the program to stop executing?",
+      "choices": [
+        "A: Nothing, the code runs forever until aborted or crashes.",
+        "B: The loop automatically breaks after 1000 iterations.",
+        "C: Python exits immediately because of indentation rules."
+      ],
+      "correct_choice": "A",
+      "explanation": "A 'while True' loop runs indefinitely unless a 'break' statement is executed or the computer aborts the process."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Running Laps",
+      "analogy_description": "Loops are like running laps around a sports field. A 'For Loop' is when your coach says: 'Run exactly 5 laps.' You know the exact count before you start. A 'While Loop' is when your coach says: 'Run laps as long as the sun is up.' You check the condition (Is the sun up?) before starting each lap. If the condition becomes false, you stop."
+    },
+    {
+      "type": "visualize",
+      "renderer": "timeline",
+      "whiteboard_data": {
+        "title": "Loop Timeline Trace",
+        "description": "Visualizing index state increments over time on a simple loop iteration.",
+        "steps": [
+          { "action": "set", "frame": "index = 0", "details": "Loop starts. index initialized to 0." },
+          { "action": "loop", "frame": "lap 1 (index < 3)", "details": "0 is less than 3. Runs lap. index incremented." },
+          { "action": "loop", "frame": "lap 2 (index < 3)", "details": "1 is less than 3. Runs lap. index incremented." },
+          { "action": "loop", "frame": "lap 3 (index < 3)", "details": "2 is less than 3. Runs lap. index incremented." },
+          { "action": "exit", "frame": "exit (index = 3)", "details": "3 is not less than 3. Loop exits." }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Let's build a simple counter loop. Write a function `sum_n(n)` that returns the sum of all integers from 1 up to (and including) `n`. For example, `sum_n(3)` should return 6 (1 + 2 + 3).",
+      "code_template": "def sum_n(n):\n    # Write loop here\n    pass",
+      "test_cases": [
+        { "input": "3", "expected": 6 },
+        { "input": "5", "expected": 15 },
+        { "input": "1", "expected": 1 }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `count_evens(numbers)` that takes a list of integers and returns the number of even numbers in that list using a loop. Hint: use the modulus operator `%` to check if a number is divisible by 2.",
+      "code_template": "def count_evens(numbers):\n    # Write logic here\n    pass",
+      "test_cases": [
+        { "input": "[1, 2, 3, 4, 5]", "expected": 2 },
+        { "input": "[10, 20, 30]", "expected": 3 },
+        { "input": "[1, 3, 5]", "expected": 0 }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain the difference between a for loop and a while loop to a junior developer. Give a practical example of when to prefer one over the other."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        { "concept": "Loops", "increment": 20 },
+        { "concept": "Iterators", "increment": 15 }
+      ],
+      "flashcards": [
+        { "front": "What statement is used to immediately exit a loop?", "back": "'break'" },
+        { "front": "What statement is used to skip the rest of the current lap and start the next lap?", "back": "'continue'" }
+      ]
+    }
+  ]
+}
