@@ -1,0 +1,103 @@
+{
+  "lesson": {
+    "topic_id": "recursion",
+    "title": "Recursion & Call Stacks",
+    "difficulty": "Medium",
+    "category": "Control Flow",
+    "description": "Master recursive problem solving by breaking down challenges into smaller self-similar steps.",
+    "interview_coverage": {
+      "stars": 4,
+      "companies": ["Google", "Meta", "Microsoft"]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 15,
+      "checklist": [
+        "Predict recursive stack frame aggregation.",
+        "Learn the Nesting Dolls analogy.",
+        "Build a recursive factorial solver.",
+        "Solve Fibonacci sequences recursively."
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "If you execute:\ndef f(n):\n    if n <= 1:\n        return 1\n    return n + f(n - 1)\n\nWhat does f(3) return?",
+      "choices": [
+        "A) 3",
+        "B) 5",
+        "C) 6",
+        "D) Infinite Loop"
+      ],
+      "correct_choice": "C",
+      "explanation": "f(3) evaluates as 3 + f(2). f(2) evaluates as 2 + f(1). Since f(1) hits the base case and returns 1, we aggregate: 3 + 2 + 1 = 6."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Matryoshka Dolls Analogy",
+      "analogy_description": "Think of recursion like opening a set of Russian Nesting Dolls (Matryoshka)! 🪆\n\nTo find the tiny treasure inside, you open a big doll, only to find a slightly smaller doll inside it. You repeat this action (recursive step) until you finally open the smallest possible doll that cannot be split further (the base case). Once you find the treasure, you close them all back up (unwinding the call stack)!"
+    },
+    {
+      "type": "visualize",
+      "whiteboard_data": {
+        "title": "Recursive Stack Frames",
+        "description": "Trace recursive frame layers and depth unwinding."
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a recursive function 'factorial(n)' that computes the product of all positive integers less than or equal to n. (e.g. factorial(5) = 120).",
+      "code_template": "def factorial(n):\n    # Write recursive factorial\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)",
+      "test_cases": [
+        {
+          "input": "5",
+          "expected": 120
+        },
+        {
+          "input": "3",
+          "expected": 6
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a recursive function 'fibonacci(n)' that returns the n-th Fibonacci number. (F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2)).",
+      "code_template": "def fibonacci(n):\n    # Write recursive Fibonacci solver\n    if n <= 0:\n        return 0\n    if n == 1:\n        return 1\n    return fibonacci(n - 1) + fibonacci(n - 2)",
+      "test_cases": [
+        {
+          "input": "6",
+          "expected": 8
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain what a base case is in a recursive function, and what happens to the computer memory if you write a recursive call without a base case."
+    },
+    {
+      "type": "interview",
+      "challenge_title": "Call Stack Frame Limits",
+      "duration_seconds": 900
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Recursion",
+          "increment": 40
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is the consequence of infinite recursion in Python?",
+          "back": "A RecursionError: maximum recursion depth exceeded (stack overflow)."
+        },
+        {
+          "front": "What are the two essential components of a recursive function?",
+          "back": "The base case (stops execution) and the recursive case (moves the problem closer to the base case)."
+        }
+      ]
+    }
+  ]
+}

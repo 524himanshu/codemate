@@ -1,0 +1,103 @@
+{
+  "lesson": {
+    "topic_id": "variables",
+    "title": "Variables & References",
+    "difficulty": "Easy",
+    "category": "Basic Syntax",
+    "description": "Learn how Python stores information using memory references, name labels, and boxes.",
+    "interview_coverage": {
+      "stars": 2,
+      "companies": ["Amazon", "TCS", "Infosys"]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 10,
+      "checklist": [
+        "Predict reference mutation behaviors.",
+        "Learn the label analogy for variable references.",
+        "Swap variables using helper memory states.",
+        "Solve a variable swap without temporary memory space."
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "If you execute:\nx = 5\ny = x\nx = 10\n\nWhat is the value of y?",
+      "choices": [
+        "A) 10",
+        "B) 5",
+        "C) None",
+        "D) Throws an Error"
+      ],
+      "correct_choice": "B",
+      "explanation": "In Python, variables are label references pointing to objects in memory. Executing 'y = x' binds the label 'y' to the same integer object 5. Reassigning 'x = 10' points 'x' to a new integer object 10, but 'y' continues to reference 5."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Luggage Tag Analogy",
+      "analogy_description": "Think of variables in Python not as heavy wooden boxes containing values, but rather as sticky luggage tags! 🏷️\n\nWhen you run 'x = 5', Python creates the number 5 in memory and sticks the label 'x' onto it. When you assign 'y = x', you simply stick another label 'y' onto that same number 5. Moving 'x' to another number doesn't move 'y'!"
+    },
+    {
+      "type": "visualize",
+      "whiteboard_data": {
+        "title": "Variable Binding Operations",
+        "description": "Trace variable pointers in the local frame stack."
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a function 'swap_variables(a, b)' that accepts two arguments and swaps their values. Return the swapped values as a tuple (b, a).",
+      "code_template": "def swap_variables(a, b):\n    # Write your code here\n    # Swap values and return them as a tuple\n    return (a, b)",
+      "test_cases": [
+        {
+          "input": "5, 10",
+          "expected": [10, 5]
+        },
+        {
+          "input": "'hello', 'world'",
+          "expected": ["world", "hello"]
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function 'swap_inplace(a, b)' that swaps two variables without using any temporary variable (e.g. use Python tuple unpacking). Return the swapped tuple.",
+      "code_template": "def swap_inplace(a, b):\n    # Swap in-place using tuple unpacking\n    return (a, b)",
+      "test_cases": [
+        {
+          "input": "20, 40",
+          "expected": [40, 20]
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain what happens in memory when you assign x = y in Python, focusing on tags or references rather than copying values."
+    },
+    {
+      "type": "interview",
+      "challenge_title": "In-place Tuple Re-binding",
+      "duration_seconds": 900
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Variables",
+          "increment": 50
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does a variable store in Python?",
+          "back": "A reference (memory address pointer) to an object, not the actual object value itself."
+        },
+        {
+          "front": "Is an integer mutable or immutable in Python?",
+          "back": "Immutable. Modifying a variable pointing to an integer redirects the pointer to a new integer object."
+        }
+      ]
+    }
+  ]
+}
