@@ -173,6 +173,12 @@ export default function App() {
     }
     setUserId(storedUid);
     
+    // Load persisted concept mastery profile
+    const savedMastery = localStorage.getItem(`mastery_${storedUid}`);
+    if (savedMastery) {
+      setConceptMastery(JSON.parse(savedMastery));
+    }
+
     // Silent wakeup trigger for Render free tier sleep
     fetch(BACKEND_URL).catch(() => {});
 
@@ -226,6 +232,43 @@ export default function App() {
   const handleOnboardingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Initialize concept mastery levels based on onboarding choice
+    let initialMastery = {
+      "Variables": 0,
+      "Conditionals": 0,
+      "Loops": 0,
+      "Functions": 0,
+      "Recursion": 0,
+      "Trees": 0,
+      "Graphs": 0
+    };
+
+    if (onboardingForm.current_skill_level === "know basics") {
+      initialMastery = {
+        "Variables": 80,
+        "Conditionals": 60,
+        "Loops": 20,
+        "Functions": 0,
+        "Recursion": 0,
+        "Trees": 0,
+        "Graphs": 0
+      };
+    } else if (onboardingForm.current_skill_level === "built 1-2 projects") {
+      initialMastery = {
+        "Variables": 100,
+        "Conditionals": 80,
+        "Loops": 60,
+        "Functions": 30,
+        "Recursion": 0,
+        "Trees": 0,
+        "Graphs": 0
+      };
+    }
+    
+    setConceptMastery(initialMastery);
+    localStorage.setItem(`mastery_${userId}`, JSON.stringify(initialMastery));
+
     try {
       const generated = await api.generateRoadmap({
         user_id: userId,
@@ -386,6 +429,7 @@ export default function App() {
           updated[up.concept] = Math.min(100, updated[up.concept] + up.increment);
         }
       });
+      localStorage.setItem(`mastery_${userId}`, JSON.stringify(updated));
       return updated;
     });
   };
@@ -557,6 +601,23 @@ export default function App() {
     a.click();
     document.body.removeChild(a);
   };
+
+  // Dynamic Career Readiness calculation based on unlocked concepts
+  const activeConcepts = ["Variables", "Conditionals", "Loops", "Functions", "Recursion"];
+  const totalScore = activeConcepts.reduce((acc, curr) => acc + (conceptMastery[curr] || 0), 0);
+  const readinessPercentage = Math.round(totalScore / activeConcepts.length);
+
+  // Dynamic filter for review queue: only show reviews if the user has started learning the concept (mastery > 0)
+  const filteredReviewQueue = reviewQueue.filter(item => {
+    const conceptMap: Record<string, string> = {
+      "variables": "Variables",
+      "loops": "Loops",
+      "functions": "Functions",
+      "recursion": "Recursion"
+    };
+    const conceptName = conceptMap[item.topic_id];
+    return conceptName ? (conceptMastery[conceptName] > 0) : false;
+  });
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
@@ -827,10 +888,10 @@ export default function App() {
                     <span className="text-xs font-mono text-zinc-500 uppercase tracking-wider block">Target Career Progress</span>
                     <div className="flex items-center justify-between font-bold text-white text-sm">
                       <span>{onboardingForm.target_role.toUpperCase()} Engineer</span>
-                      <span>61% Ready</span>
+                      <span>{readinessPercentage}% Ready</span>
                     </div>
                     <div className="w-full bg-zinc-950 h-2.5 rounded-full overflow-hidden border border-zinc-900">
-                      <div className="bg-gradient-to-r from-indigo-500 to-violet-500 h-full w-[61%]" />
+                      <div className="bg-gradient-to-r from-indigo-500 to-violet-500 h-full" style={{ width: `${readinessPercentage}%` }} />
                     </div>
                     <div className="flex items-center justify-between text-xs text-zinc-500 mt-2 font-mono">
                       <span>Goal: Pass DSA Assessment</span>
@@ -839,14 +900,14 @@ export default function App() {
                   </div>
 
                   {/* V2 Leitner Spaced Repetition Review Queue */}
-                  {reviewQueue.length > 0 && (
+                  {filteredReviewQueue.length > 0 && (
                     <div className="bg-zinc-900/40 border border-indigo-950/60 p-5 rounded-2xl space-y-3">
                       <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-wider font-mono">
                         <Flame className="h-4 w-4" />
                         <span>Spaced Repetition Queue</span>
                       </div>
                       <div className="space-y-2">
-                        {reviewQueue.map((item) => (
+                        {filteredReviewQueue.map((item) => (
                           <div key={item.topic_id} className="p-3 bg-zinc-950/60 border border-zinc-900 rounded-xl flex items-center justify-between gap-3 text-xs">
                             <div>
                               <span className="font-bold text-white block">{item.title}</span>
