@@ -1,61 +1,90 @@
-# CodeMate — The Self-Taught Builder's Path to Getting Hired
+# CodeMate — The Self-Taught Builder's Career OS
 
-CodeMate is an AI-powered platform designed to take self-taught developers from "I just learned Python" to "I got hired". It integrates conversational AI teaching (Explain Like I'm 5 with mid-lesson checkpoints), personalized roadmap generators, a structured DSA Interview Academy, a resume builder based on actual GitHub projects, and referral finders/job fit scoring tools.
-
----
-
-## Workspace Structure
-
-- `/frontend`: Next.js web application built with App Router, TypeScript, and Tailwind CSS v4.
-- `/backend`: FastAPI Python server for AI routing, database logic, and resume parsing.
+CodeMate is an AI-powered Career Operating System designed to take self-taught developers from "I just learned code" to "I got hired." It features dynamic onboarding, active learning paths, real-time subprocess execution engines, spaced repetition schedules, and WebSocket peer collaboration workspaces.
 
 ---
 
-## Getting Started
+## 🌟 Core Features
+
+### 1. Active Learning Academy (3-Pane IDE Studio)
+- **Tutor Chatbot & AST Whiteboard**: Conversational AI guidance coupled with a deterministic Python runner capturing stack traces using custom `sys.settrace` hooks.
+- **Multilingual Subprocess Sandbox**: Compile and run code in isolated subprocesses under a 2-second timeout. Auto-detects and executes **Python**, **JavaScript** (Node.js), **Java** (javac/java), and **C++** (g++).
+- **Interactive SVG Skills Graph**: A visual vector skills tree reflecting mastery ratios, unlocking nodes, and path connections dynamically.
+- **Explain Like I'm 5 (ELI5)**: Tailor explanations of complex topics with interactive tabs: *Overview (Analogy)*, *Explain Like I'm 5 (simple language + emojis)*, and *Under the Hood (memory layouts & compilation details)*.
+
+### 2. Leitner Spaced-Repetition Scheduler
+- Calculates review dates dynamically based on user scores.
+- Displays a prioritized daily "Spaced Repetition Queue" on the dashboard for concepts requiring refreshers.
+
+### 3. Collaborative Multiplayer Mock Interview Rooms
+- Real-time peer-to-peer workspace syncing over FastAPI WebSockets (`wss://`).
+- Synchronizes candidate code typing, compile output logs, and visual stack trace whiteboard replays instantly across interviewer and candidate screens.
+
+### 4. Project-Based Resume Bullet Analyzer
+- Analyzes public GitHub repositories.
+- Evaluates code complexity and originality.
+- Returns verified, impact-oriented bullet points tailored to specific target engineering roles.
+
+---
+
+## 📂 Workspace Structure
+
+- `/frontend`: Next.js web application built with App Router, TypeScript, and Lucide Icons.
+- `/backend`: FastAPI Python server for sandbox compilers, WebSocket rooms, and Gemini API middleware.
+
+---
+
+## 🚀 Getting Started
 
 ### 1. Prerequisites
 - Node.js (v18+)
 - Python (3.10+)
-- Gemini API Key (set as `GEMINI_API_KEY`)
-- Supabase Project (set as `SUPABASE_URL` and `SUPABASE_KEY`)
+- Gemini API Key (`GEMINI_API_KEY`)
+- Supabase Key & URL (for fallback schemas)
 
 ### 2. Backend Setup
-1. Navigate to the backend directory:
+1. Navigate to backend:
    ```bash
    cd backend
    ```
-2. Create a virtual environment and activate it:
+2. Create and activate a virtual environment:
    ```bash
    python -m venv .venv
-   # On Windows:
+   # Windows:
    .venv\Scripts\activate
-   # On macOS/Linux:
+   # macOS/Linux:
    source .venv/bin/activate
    ```
 3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Copy `.env.template` to `.env` and fill in your keys:
+4. Copy env variables:
    ```bash
    cp .env.template .env
    ```
-5. Run the FastAPI development server:
+5. Start Uvicorn:
    ```bash
    uvicorn app.main:app --reload --port 8000
    ```
 
 ### 3. Frontend Setup
-1. Navigate to the frontend directory:
+1. Navigate to frontend:
    ```bash
    cd frontend
    ```
-2. Install dependencies:
+2. Install npm packages:
    ```bash
    npm install
    ```
-3. Run the development server:
+3. Run local dev server:
    ```bash
    npm run dev
    ```
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 🌐 Deployed Sites
+- **Frontend App**: [codemate-os.vercel.app](https://codemate-os.vercel.app)
+- **Backend API**: [codemate-backend-kucb.onrender.com](https://codemate-backend-kucb.onrender.com)
