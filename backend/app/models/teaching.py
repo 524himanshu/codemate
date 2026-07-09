@@ -46,3 +46,11 @@ class TeachBackRequest(BaseModel):
 class TeachBackResponse(BaseModel):
     score: int
     feedback: str
+
+class ExplanationRequest(BaseModel):
+    topic_id: str
+    style: str  # "eli5" or "formal"
+
+class ExplanationResponse(BaseModel):
+    style: str
+    explanation: str

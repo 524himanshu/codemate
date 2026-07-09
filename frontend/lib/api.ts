@@ -150,6 +150,23 @@ export const api = {
     return res.json();
   },
 
+  async getExplanation(topicId: string, style: "eli5" | "formal"): Promise<{ style: string; explanation: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/teaching/explain`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        topic_id: topicId,
+        style: style
+      }),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to fetch explanation from AI");
+    }
+    return res.json();
+  },
+
   async getReviewQueue(): Promise<any[]> {
     const res = await fetch(`${BACKEND_URL}/api/teaching/review-queue`);
     if (!res.ok) {

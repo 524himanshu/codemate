@@ -11,7 +11,9 @@ from app.models.teaching import (
     HintRequest,
     HintResponse,
     TeachBackRequest,
-    TeachBackResponse
+    TeachBackResponse,
+    ExplanationRequest,
+    ExplanationResponse
 )
 from app.services.runner_service import execution_engine
 from app.services.gemini_service import gemini_service
@@ -221,6 +223,38 @@ async def evaluate_teachback(request: TeachBackRequest):
     except Exception as e:
         logger.error(f"Gemini teachback grading error: {e}")
         return default_response
+
+# Explain Like I'm 5 & Under the Hood Endpoint
+@router.post("/explain", response_model=ExplanationResponse)
+async def get_explanation(request: ExplanationRequest):
+    """
+    Generates an explanation of a concept tailored for different learning styles (ELI5 vs Formal).
+    """
+    topic = request.topic_id.capitalize()
+    
+    if request.style == "eli5":
+        prompt = (
+            f"Explain the programming concept of '{topic}' like I am a 5-year-old child. "
+            "Use very simple everyday words, analogy, and fun emojis. Keep it under 60 words. "
+            "Make it feel friendly and exciting!"
+        )
+        default_val = f"Think of {topic} like a super-smart box! 📦 You put things in it, and it keeps them safe for you to play with later! 🚀"
+    else:
+        prompt = (
+            f"Explain the low-level, under-the-hood technical execution of '{topic}' "
+            "(e.g. stack frame creation, memory references, variables namespace allocation, and compiler pointer evaluation). "
+            "Keep it under 75 words. Be precise and professional."
+        )
+        default_val = f"Under the hood, {topic} manages memory structures, stack pointer scopes, and execution contexts dynamically."
+
+    explanation = default_val
+    if not gemini_service.is_mock():
+        try:
+            explanation = await gemini_service.generate_content(prompt)
+        except Exception as e:
+            logger.error(f"Gemini explain generation error: {e}")
+            
+    return ExplanationResponse(style=request.style, explanation=explanation)
 
 # Spaced Repetition Review Queue Endpoint
 @router.get("/review-queue")

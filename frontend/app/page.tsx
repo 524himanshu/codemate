@@ -122,6 +122,32 @@ export default function App() {
   const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
   const [peerStatus, setPeerStatus] = useState<string>("Disconnected");
 
+  // ELI5 & Under the Hood State
+  const [discoverTab, setDiscoverTab] = useState<"analogy" | "eli5" | "formal">("analogy");
+  const [explanationCache, setExplanationCache] = useState<Record<string, string>>({});
+  const [explanationLoading, setExplanationLoading] = useState<boolean>(false);
+
+  const handleDiscoverTabChange = async (tab: "analogy" | "eli5" | "formal") => {
+    setDiscoverTab(tab);
+    if (tab === "analogy") return;
+    
+    const cacheKey = `${selectedTopic}_${tab}`;
+    if (explanationCache[cacheKey]) return;
+    
+    setExplanationLoading(true);
+    try {
+      const res = await api.getExplanation(selectedTopic, tab);
+      setExplanationCache(prev => ({
+        ...prev,
+        [cacheKey]: res.explanation
+      }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setExplanationLoading(false);
+    }
+  };
+
   // Mastery State
   const [conceptMastery, setConceptMastery] = useState<Record<string, number>>({
     "Variables": 100,
@@ -224,6 +250,7 @@ export default function App() {
     setSelectedTopic(topicId);
     setLessonLoading(true);
     setCurrentStepIndex(0);
+    setDiscoverTab("analogy");
     setPredictionSubmitted(false);
     setSelectedChoice("");
     setEditorCode("");
@@ -1262,9 +1289,57 @@ export default function App() {
                             </div>
                           </div>
 
-                          <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap">
-                            {lessonDefinition.states.find((s: any) => s.type === "discover").analogy_description}
-                          </p>
+                          {/* Tab Controls: Analogy | ELI5 | Under the Hood */}
+                          <div className="flex border-b border-zinc-900 text-xs font-semibold mb-2">
+                            <button
+                              type="button"
+                              onClick={() => handleDiscoverTabChange("analogy")}
+                              className={`flex-1 py-2 text-center transition-all duration-200 ${
+                                discoverTab === "analogy"
+                                  ? "border-b-2 border-indigo-500 text-white font-bold"
+                                  : "text-zinc-500 hover:text-zinc-300"
+                              }`}
+                            >
+                              Overview (Analogy)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDiscoverTabChange("eli5")}
+                              className={`flex-1 py-2 text-center transition-all duration-200 ${
+                                discoverTab === "eli5"
+                                  ? "border-b-2 border-indigo-500 text-white font-bold"
+                                  : "text-zinc-500 hover:text-zinc-300"
+                              }`}
+                            >
+                              Explain Like I'm 5
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDiscoverTabChange("formal")}
+                              className={`flex-1 py-2 text-center transition-all duration-200 ${
+                                discoverTab === "formal"
+                                  ? "border-b-2 border-indigo-500 text-white font-bold"
+                                  : "text-zinc-500 hover:text-zinc-300"
+                              }`}
+                            >
+                              Under the Hood
+                            </button>
+                          </div>
+
+                          {explanationLoading ? (
+                            <div className="flex justify-center items-center py-8">
+                              <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" />
+                              <span className="text-xs text-zinc-500 font-mono ml-2">Mentor is thinking...</span>
+                            </div>
+                          ) : (
+                            <div className="p-5 bg-zinc-900/40 border border-zinc-900 rounded-2xl shadow-inner relative overflow-hidden transition-all duration-300">
+                              <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                                {discoverTab === "analogy"
+                                  ? lessonDefinition.states.find((s: any) => s.type === "discover").analogy_description
+                                  : explanationCache[`${selectedTopic}_${discoverTab}`] || ""}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
 
