@@ -146,6 +146,9 @@ export default function App() {
       localStorage.setItem("codemate_uid", storedUid);
     }
     setUserId(storedUid);
+    
+    // Silent wakeup trigger for Render free tier sleep
+    fetch(BACKEND_URL).catch(() => {});
 
     const loadRoadmap = async () => {
       setIsLoading(true);
@@ -610,6 +613,7 @@ export default function App() {
           <div className="flex-1 flex flex-col items-center justify-center py-20">
             <Loader2 className="h-10 w-10 text-indigo-500 animate-spin mb-4" />
             <p className="text-zinc-400 font-medium">Scaffolding your customized dev curriculum...</p>
+            <p className="text-xs text-zinc-550 font-mono mt-1 text-center max-w-sm">Waking up the server (this may take up to 45 seconds on free-tier cold starts)</p>
           </div>
         ) : !isOnboarded ? (
           /* ONBOARDING SCREEN */
