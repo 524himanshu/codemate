@@ -32,7 +32,7 @@ import {
   Radio,
   CheckSquare
 } from "lucide-react";
-import { api, Roadmap, CodeExecutionResponse, TestCaseResult } from "../lib/api";
+import { api, Roadmap, CodeExecutionResponse, TestCaseResult, BACKEND_URL } from "../lib/api";
 
 type LessonState = 
   | "MISSION" 
@@ -368,8 +368,11 @@ export default function App() {
     }
     setPeerStatus("Connecting...");
     
-    // Connect to backend WS server
-    const ws = new WebSocket(`ws://localhost:8000/api/ws/interview/${roomId}`);
+    // Connect to backend WS server dynamically over ws/wss
+    const wsProto = BACKEND_URL.startsWith("https") ? "wss" : "ws";
+    const cleanBackendUrl = BACKEND_URL.replace(/^https?:\/\//, "");
+    const wsUrl = `${wsProto}://${cleanBackendUrl}/api/ws/interview/${roomId}`;
+    const ws = new WebSocket(wsUrl);
     
     ws.onopen = () => {
       setPeerStatus("Joined Room. Awaiting Peer...");

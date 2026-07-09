@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://codemate-backend-kucb.onrender.com";
 
 export interface OnboardingRequest {
   user_id: string;
