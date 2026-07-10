@@ -652,6 +652,79 @@ export default function App() {
 
   // V2 SVG interactive graph skills renderer
   const renderSVGSkillsGraph = () => {
+    if (activeTrack === "dsa") {
+      const nodes = [
+        { id: "intro-to-algorithms", label: "Foundations", x: 150, y: 30, mastery: conceptMastery["Foundations"] || 45, unlocked: true },
+        { id: "elementary-data-structures", label: "Basic Structures", x: 150, y: 90, mastery: conceptMastery["Basic Structures"] || 20, unlocked: true },
+        { id: "heapsort-priority-queues", label: "Sorting/Searching", x: 150, y: 150, mastery: conceptMastery["Sorting/Searching"] || 10, unlocked: true },
+        { id: "graph-data-structures", label: "Graph Algorithms", x: 150, y: 210, mastery: conceptMastery["Graph Algorithms"] || 0, unlocked: true },
+        { id: "backtracking-i", label: "Dynamic Prog", x: 150, y: 270, mastery: conceptMastery["Dynamic Prog"] || 0, unlocked: true },
+        { id: "intro-to-np-completeness", label: "Complexity Theory", x: 150, y: 330, mastery: conceptMastery["Complexity Theory"] || 0, unlocked: true }
+      ];
+
+      return (
+        <svg viewBox="0 0 300 370" className="w-full h-auto bg-zinc-950/40 border border-zinc-900 rounded-2xl p-4 shadow-inner">
+          {/* Connection Paths */}
+          <line x1="150" y1="30" x2="150" y2="90" stroke="#3f3f46" strokeWidth="2.5" />
+          <line x1="150" y1="90" x2="150" y2="150" stroke="#3f3f46" strokeWidth="2.5" />
+          <line x1="150" y1="150" x2="150" y2="210" stroke="#3f3f46" strokeWidth="2.5" />
+          <line x1="150" y1="210" x2="150" y2="270" stroke="#3f3f46" strokeWidth="2.5" />
+          <line x1="150" y1="270" x2="150" y2="330" stroke="#3f3f46" strokeWidth="2.5" />
+
+          {/* Nodes map */}
+          {nodes.map((node) => {
+            const isSelected = selectedTopic === node.id || 
+              (node.id === "intro-to-algorithms" && ["intro-to-algorithms", "asymptotic-notation", "program-analysis"].includes(selectedTopic)) ||
+              (node.id === "elementary-data-structures" && ["elementary-data-structures", "dictionaries", "hashing"].includes(selectedTopic)) ||
+              (node.id === "heapsort-priority-queues" && ["heapsort-priority-queues", "mergesort-quicksort", "linear-sorting"].includes(selectedTopic)) ||
+              (node.id === "graph-data-structures" && ["graph-data-structures", "breadth-first-search", "depth-first-search", "minimum-spanning-trees-i", "minimum-spanning-trees-ii", "shortest-paths"].includes(selectedTopic)) ||
+              (node.id === "backtracking-i" && ["backtracking-i", "backtracking-ii", "intro-to-dynamic-programming", "edit-distance-i", "edit-distance-ii", "intro-to-dynamic-programming-ii", "applications-of-dynamic-programming"].includes(selectedTopic)) ||
+              (node.id === "intro-to-np-completeness" && ["intro-to-np-completeness", "satisfiability", "other-reductions", "np-completeness-challenge"].includes(selectedTopic));
+
+            return (
+              <g
+                key={node.id}
+                className="cursor-pointer group select-none"
+                onClick={() => {
+                  handleStartLesson(node.id);
+                }}
+              >
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r="20"
+                  fill={isSelected ? "rgba(79, 70, 229, 0.15)" : "#09090b"}
+                  stroke={isSelected ? "#818cf8" : "#27272a"}
+                  strokeWidth="2.5"
+                  className="transition-all duration-300 group-hover:stroke-indigo-400 group-hover:scale-105"
+                />
+
+                {/* Text elements */}
+                <text
+                  x={node.x}
+                  y={node.y + 32}
+                  textAnchor="middle"
+                  fill="#e4e4e7"
+                  className="text-[9px] font-bold font-sans tracking-tight"
+                >
+                  {node.label}
+                </text>
+                <text
+                  x={node.x}
+                  y={node.y + 4}
+                  textAnchor="middle"
+                  fill="#a1a1aa"
+                  className="text-[8px] font-mono font-bold"
+                >
+                  {`${node.mastery}%`}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      );
+    }
+
     const nodes = [
       { id: "variables", label: "Variables", x: 150, y: 35, mastery: conceptMastery["Variables"] || 100, unlocked: true },
       { id: "loops", label: "Loops", x: 150, y: 115, mastery: conceptMastery["Loops"] || 44, unlocked: true },
