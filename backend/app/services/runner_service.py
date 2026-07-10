@@ -98,7 +98,10 @@ for idx, tc in enumerate(test_cases_defs):
         args = eval(f"({{input_str}},)")
         actual_val = func_obj(*args)
         
-        passed = (actual_val == expected_val)
+        # Normalize list/tuple for comparison
+        comp_actual = list(actual_val) if isinstance(actual_val, tuple) else actual_val
+        comp_expected = list(expected_val) if isinstance(expected_val, tuple) else expected_val
+        passed = (comp_actual == comp_expected)
         test_results.append({{
             "input": input_str,
             "expected": str(expected_val),
