@@ -746,7 +746,7 @@ export default function App() {
   };
 
   // V3 Job Fit Scorer State
-  const [resumeTab, setResumeTab] = useState<"analyze" | "fit">("analyze");
+  const [resumeTab, setResumeTab] = useState<"analyze" | "fit" | "referral">("analyze");
   const [resumeText, setResumeText] = useState<string>("");
   const [jobDescription, setJobDescription] = useState<string>("");
   const [fitAnalysis, setFitAnalysis] = useState<any>(null);
@@ -2535,7 +2535,9 @@ export default function App() {
                       )}
                     </div>
                   </div>
-                ) : (
+                )}
+
+                {resumeTab === "fit" && (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
                     {/* Form column */}
                     <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-5 h-fit">
