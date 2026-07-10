@@ -44,7 +44,7 @@ def trace_hook(frame, event, arg):
         
     if event == "call":
         call_depth += 1
-        args = {}
+        args = {{}}
         for var_name in frame.f_code.co_varnames[:frame.f_code.co_argcount]:
             val = frame.f_locals.get(var_name)
             try:
@@ -52,26 +52,26 @@ def trace_hook(frame, event, arg):
             except:
                 args[var_name] = "<unserializable>"
                 
-        trace_log.append({
+        trace_log.append({{
             "event": "call",
             "function": func_name,
             "args": args,
             "depth": call_depth,
             "line": frame.f_lineno
-        })
+        }})
     elif event == "return":
         try:
             ret_val = str(arg)
         except:
             ret_val = "<unserializable>"
             
-        trace_log.append({
+        trace_log.append({{
             "event": "return",
             "function": func_name,
             "returnValue": ret_val,
             "depth": call_depth,
             "line": frame.f_lineno
-        })
+        }})
         call_depth -= 1
         
     return trace_hook
@@ -95,32 +95,32 @@ for idx, tc in enumerate(test_cases_defs):
     expected_val = tc["expected"]
     
     try:
-        args = eval(f"({input_str},)")
+        args = eval(f"({{input_str}},)")
         actual_val = func_obj(*args)
         
         passed = (actual_val == expected_val)
-        test_results.append({
+        test_results.append({{
             "input": input_str,
             "expected": str(expected_val),
             "actual": str(actual_val),
             "passed": passed
-        })
+        }})
     except Exception as ex:
-        test_results.append({
+        test_results.append({{
             "input": input_str,
             "expected": str(expected_val),
-            "actual": f"Error: {type(ex).__name__} - {str(ex)}",
+            "actual": f"Error: {{type(ex).__name__}} - {{str(ex)}}",
             "passed": False
-        })
+        }})
 
 # Disable trace
 sys.settrace(None)
 
 # Output trace logs in a marked segment
-print("###TRACE###" + json.dumps({
+print("###TRACE###" + json.dumps({{
     "trace": trace_log,
     "test_results": test_results
-}))
+}}))
 """
         script_content = wrapper_template.format(
             user_code=code,
