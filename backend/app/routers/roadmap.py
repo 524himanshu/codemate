@@ -1,8 +1,13 @@
 import json
+import logging
+from typing import List, Dict, Any
+from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Path
 from app.models.roadmap import OnboardingRequest, RoadmapSchema
 from app.services.gemini_service import gemini_service
 from app.services.supabase_service import db_service
+
+logger = logging.getLogger("codemate.roadmap")
 
 router = APIRouter()
 
@@ -107,3 +112,135 @@ async def get_roadmap(user_id: str = Path(..., description="The user ID to fetch
     if not roadmap:
         raise HTTPException(status_code=404, detail="Roadmap not found for this user.")
     return roadmap
+
+class SummarizeRequest(BaseModel):
+    url: str
+
+class FlashcardSchema(BaseModel):
+    front: str
+    back: str
+
+class QuizQuestionSchema(BaseModel):
+    question: str
+    choices: List[str]
+    correct_choice: str
+    explanation: str
+
+class SummarizeResponse(BaseModel):
+    summary: List[str]
+    flashcards: List[FlashcardSchema]
+    quiz_questions: List[QuizQuestionSchema]
+
+@router.post("/summarize", response_model=SummarizeResponse)
+async def summarize_resource(request: SummarizeRequest):
+    url_lower = request.url.lower()
+    
+    # 1. Mock Summaries for common topics
+    mock_summary = SummarizeResponse(
+        summary=[
+            "REST APIs use standard HTTP request verbs (GET, POST, PUT, DELETE) to define actions.",
+            "Stateless execution: Every request must carry all the parameters, headers, and authentication tokens needed.",
+            "Status Codes indicate categories: 200 (Success), 400 (Bad Request), 401 (Unauthorized), 500 (Internal Server Error).",
+            "Caching via headers (ETag, Cache-Control) reduces duplicate backend query calls.",
+            "Rate Limiting protects endpoints using algorithms like Token Bucket or Leaky Bucket."
+        ],
+        flashcards=[
+            FlashcardSchema(front="What HTTP status represents rate limiting?", back="429 Too Many Requests"),
+            FlashcardSchema(front="What HTTP status represents unauthorized requests?", back="401 Unauthorized")
+        ],
+        quiz_questions=[
+            {
+                "question": "Which HTTP verb should be used to overwrite an entire database resource record?",
+                "choices": ["A: GET", "B: PUT", "C: POST"],
+                "correct_choice": "B",
+                "explanation": "PUT is idempotent and replaces the target resource representation entirely."
+            },
+            {
+                "question": "What does a 502 status code represent?",
+                "choices": ["A: Bad Gateway", "B: Service Unavailable", "C: Timeout"],
+                "correct_choice": "A",
+                "explanation": "502 Bad Gateway indicates a network/reverse-proxy communication failure between servers."
+            },
+            {
+                "question": "What algorithm refills rates incrementally over time?",
+                "choices": ["A: Round Robin", "B: Token Bucket", "C: First In First Out"],
+                "correct_choice": "B",
+                "explanation": "The Token Bucket algorithm adds tokens at a fixed rate, allowing bursts of requests up to capacity."
+            }
+        ]
+    )
+    
+    if "python" in url_lower or "loop" in url_lower:
+        mock_summary = SummarizeResponse(
+            summary=[
+                "Python loops run using the iterator protocol, calling __iter__() and __next__() under the hood.",
+                "List comprehensions run in C speed, making them faster than standard loops appending items.",
+                "Generator expressions conserve memory by yielding items lazily instead of instantiating full lists.",
+                "Avoid modifying lists while iterating over them to prevent index skip bugs.",
+                "Use enumerate() to capture index counts cleanly during traversals."
+            ],
+            flashcards=[
+                FlashcardSchema(front="What method fetches the next item in an iterator?", back="__next__()"),
+                FlashcardSchema(front="Do generator expressions allocate full memory buffers?", back="No, they yield items one-by-one dynamically.")
+            ],
+            quiz_questions=[
+                {
+                    "question": "Which of these is the most memory-efficient loop over 10 million items?",
+                    "choices": ["A: List comprehension", "B: Generator expression", "C: Standard append loop"],
+                    "correct_choice": "B",
+                    "explanation": "Generators have O(1) space complexity because they evaluate elements one-by-one."
+                }
+            ]
+        )
+    elif "skiena" in url_lower or "algorithm" in url_lower:
+        mock_summary = SummarizeResponse(
+            summary=[
+                "Algorithms are evaluated on correctness (halting on all inputs) and complexity bounds.",
+                "Skiena recommends focusing on the mathematical 'why' (heuristics, tree reductions) before coding.",
+                "Comparison-based sorting has a lower bound of Omega(N log N) decision tree height.",
+                "Graphs represent objects and connections. Sparse graphs are best stored in Adjacency Lists.",
+                "Backtracking traverses options recursively, pruning branches as soon as constraints are violated."
+            ],
+            flashcards=[
+                FlashcardSchema(front="What is the lower bound of comparison sorting?", back="Omega(N log N)"),
+                FlashcardSchema(front="What graph store fits sparse links?", back="Adjacency List (space O(V + E))")
+            ],
+            quiz_questions=[
+                {
+                    "question": "Which of these is an NP-complete problem?",
+                    "choices": ["A: Dijkstra Shortest Path", "B: Boolean Satisfiability (SAT)", "C: Heapsort"],
+                    "correct_choice": "B",
+                    "explanation": "SAT was the first problem proved NP-complete by the Cook-Levin theorem."
+                }
+            ]
+        )
+        
+    if gemini_service.is_mock():
+        return mock_summary
+        
+    prompt = f"""
+    Analyze and summarize the technical document or video at URL: '{request.url}'.
+    Provide:
+    1. A 5-bullet summary detailing the most critical engineering takeaways.
+    2. 2 flashcards (front/back questions) representing core formulas or constraints.
+    3. 3 multiple-choice quiz questions (with question text, choices array, correct_choice, and explanation).
+    
+    Ensure you output valid JSON matching the schema.
+    """
+    
+    system_instruction = (
+        "You are an expert study assistant. "
+        "Your task is to summarize complex engineering tutorials and documents "
+        "into structured study guides and quizzes. Return a structured JSON response."
+    )
+    
+    try:
+        response_text = await gemini_service.generate_structured_json(
+            prompt=prompt,
+            response_schema=SummarizeResponse,
+            system_instruction=system_instruction
+        )
+        return json.loads(response_text)
+    except Exception as e:
+        logger.error(f"Error summarizing resource: {e}")
+        return mock_summary

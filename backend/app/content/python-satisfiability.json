@@ -1,0 +1,117 @@
+{
+  "lesson": {
+    "id": "satisfiability",
+    "title": "Satisfiability",
+    "interview_coverage": {
+      "topic": "Satisfiability",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "IBM",
+        "Intel"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Formulate Boolean Satisfiability (SAT) formulas",
+        "Understand Cook-Levin Theorem foundations",
+        "Verify clause assignments",
+        "Implement backtracking CNF solvers"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What does the Cook-Levin Theorem prove?",
+      "choices": [
+        "A: That P = NP.",
+        "B: That Boolean Satisfiability (SAT) is NP-complete.",
+        "C: That Dijkstra's algorithm is optimal."
+      ],
+      "correct_choice": "B",
+      "explanation": "Cook and Levin proved that SAT is NP-complete, showing that any NP problem can be translated to a SAT formula in polynomial time."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Light Switches",
+      "analogy_description": "You have a board of light bulbs and switches connected by logical gates. A formula specifies conditions. SAT is the problem of finding a configuration of ON/OFF switches to turn all lights ON."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Clause Evaluation Node",
+        "description": "Checking truth value of OR-ed boolean literals.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "clause(x1 or not x2)",
+            "details": "Evaluating clause with assignments x1=False, x2=False"
+          },
+          {
+            "action": "push",
+            "frame": "eval(False or True)",
+            "details": "not x2 is True. Clause is satisfied."
+          },
+          {
+            "action": "pop",
+            "frame": "eval()",
+            "details": "Clause check complete."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "A clause is a list of integers where positive index means literal, and negative index means negated literal. Write `evaluate_clause(assignment, clause)` checking if clause evaluates to `True`.",
+      "code_template": "def evaluate_clause(assignment, clause):\n    # Return True if clause is satisfied\n    pass",
+      "test_cases": [
+        {
+          "input": "{1: True, 2: False}, [1, -2]",
+          "expected": "True"
+        },
+        {
+          "input": "{1: False, 2: True}, [1, -2]",
+          "expected": "False"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a simple backtracking SAT solver `solve_sat_backtracking(clauses, variables)` that returns a dictionary assignment if satisfiable, or `None` if not.",
+      "code_template": "def solve_sat_backtracking(clauses, variables):\n    # Solve SAT recursively\n    pass",
+      "test_cases": [
+        {
+          "input": "[[1], [-1]], [1]",
+          "expected": "None"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Satisfiability in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Satisfiability",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does CNF stand for?",
+          "back": "Conjunctive Normal Form (AND of OR clauses)."
+        },
+        {
+          "front": "What is 3-SAT?",
+          "back": "A version of SAT where every clause contains exactly 3 literals. It is also NP-complete."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "lesson": {
+    "id": "edit-distance-ii",
+    "title": "Edit Distance II",
+    "interview_coverage": {
+      "topic": "Edit Distance II",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Databricks",
+        "PhonePe"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement bottom-up edit distance matrices",
+        "Analyze O(M * N) space complexities",
+        "Reconstruct edit operation alignment lists",
+        "Optimize space parameters to O(min(M, N))"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the space complexity of standard bottom-up tabulated Edit Distance?",
+      "choices": [
+        "A: O(M + N)",
+        "B: O(M * N)",
+        "C: O(2^N)"
+      ],
+      "correct_choice": "B",
+      "explanation": "Standard bottom-up tabulation maps calculations to a grid table of size (M+1) x (N+1), yielding O(M * N) space complexity."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Grid Ledger Spreadsheet",
+      "analogy_description": "Fill a spreadsheet where row represents chars of string 1, and column represents string 2. Cell (i, j) accumulates the minimum edit cost calculated from top, left, and diagonal cells."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Tabulation Cell Update",
+        "description": "Calculating cell value from surrounding grid cells.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "dp[i][j]",
+            "details": "Fill value at (i, j)"
+          },
+          {
+            "action": "push",
+            "frame": "min(left, top, diag)",
+            "details": "Min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+1)"
+          },
+          {
+            "action": "pop",
+            "frame": "min()",
+            "details": "Update cell with min value."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a bottom-up tabulated edit distance function `edit_dist_tab(s1, s2)` that fills a grid table and returns the minimum operations.",
+      "code_template": "def edit_dist_tab(s1, s2):\n    # Tabulated edit distance\n    pass",
+      "test_cases": [
+        {
+          "input": "\"cat\", \"cut\"",
+          "expected": "1"
+        },
+        {
+          "input": "\"sunday\", \"saturday\"",
+          "expected": "3"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a space-optimized edit distance function `edit_dist_opt(s1, s2)` that only keeps the current and previous rows in memory, reducing space to O(N).",
+      "code_template": "def edit_dist_opt(s1, s2):\n    # Space optimized edit distance\n    pass",
+      "test_cases": [
+        {
+          "input": "\"hello\", \"world\"",
+          "expected": "4"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Edit Distance II in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Edit Distance II",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "How do you trace back the alignment path?",
+          "back": "By starting at cell (M, N) and moving to the neighboring cell that yielded its minimum value."
+        },
+        {
+          "front": "What does a diagonal movement without cost increment represent?",
+          "back": "A match (no character replacement required)."
+        }
+      ]
+    }
+  ]
+}

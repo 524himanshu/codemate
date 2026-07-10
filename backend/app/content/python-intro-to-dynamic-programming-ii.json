@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "intro-to-dynamic-programming-ii",
+    "title": "Introduction to Dynamic Programming II",
+    "interview_coverage": {
+      "topic": "Introduction to Dynamic Programming II",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Amazon",
+        "JPMorgan"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement 0/1 Knapsack recurrence formulas",
+        "Analyze Knapsack value boundaries",
+        "Optimize Knapsack memory space rows",
+        "Identify bounded knapsack constraints"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the time complexity of the 0/1 Knapsack bottom-up algorithm with N items and Capacity W?",
+      "choices": [
+        "A: O(2^N)",
+        "B: O(N * W)",
+        "C: O(N + W)"
+      ],
+      "correct_choice": "B",
+      "explanation": "Filling the DP table takes O(N * W) time. Since W is not bound by a polynomial of input size, this is pseudo-polynomial."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Packing a Backpack",
+      "analogy_description": "You are a burglar with a backpack of capacity W. You look at items. For each item, you decide: steal it (consume capacity, add value) or leave it. You optimize value without breaking the backpack."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Knapsack Matrix Lookups",
+        "description": "Checking max value by choosing inclusion vs exclusion.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "dp[i][w]",
+            "details": "Steal item i? Compare dp[i-1][w] vs value[i] + dp[i-1][w-weight[i]]"
+          },
+          {
+            "action": "push",
+            "frame": "max(val_exclude, val_include)",
+            "details": "Choose option yielding maximum value."
+          },
+          {
+            "action": "pop",
+            "frame": "max()",
+            "details": "Cell updated."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a recursive 0/1 Knapsack function `knapsack_rec(weights, values, W, n)` that returns the maximum value without cache.",
+      "code_template": "def knapsack_rec(weights, values, W, n):\n    # Recursive Knapsack\n    pass",
+      "test_cases": [
+        {
+          "input": "[1, 2, 3], [10, 15, 40], 6, 3",
+          "expected": "65"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a bottom-up tabulated 0/1 Knapsack function `knapsack_tab(weights, values, W)` that returns the max value.",
+      "code_template": "def knapsack_tab(weights, values, W):\n    # Tabulated Knapsack\n    pass",
+      "test_cases": [
+        {
+          "input": "[1, 2, 3], [10, 15, 40], 6",
+          "expected": "65"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Introduction to Dynamic Programming II in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Introduction to Dynamic Programming II",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does 0/1 mean in Knapsack?",
+          "back": "You cannot take fractional portions of an item; you must either take it fully (1) or leave it (0)."
+        },
+        {
+          "front": "Why is Knapsack NP-hard?",
+          "back": "Because its optimization decision problem is NP-complete."
+        }
+      ]
+    }
+  ]
+}

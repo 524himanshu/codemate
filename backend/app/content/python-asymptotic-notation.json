@@ -1,0 +1,121 @@
+{
+  "lesson": {
+    "id": "asymptotic-notation",
+    "title": "Asymptotic Notation",
+    "interview_coverage": {
+      "topic": "Asymptotic Notation",
+      "stars": 4,
+      "companies": [
+        "Amazon",
+        "Google",
+        "Adobe"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Define Big O, Big Omega, and Big Theta",
+        "Identify order of growth rates",
+        "Compare log N, linear N, quadratic N^2, and exponential 2^N",
+        "Analyze asymptotic limits mathematically"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "If an algorithm runs in 3N^2 + 10N + 5 operations, what is its Big O complexity?",
+      "choices": [
+        "A: O(N^2)",
+        "B: O(N)",
+        "C: O(3N^2)"
+      ],
+      "correct_choice": "A",
+      "explanation": "Asymptotic notation focuses on the dominant term (highest power of N) as N approaches infinity, ignoring constants."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Cleaning a House",
+      "analogy_description": "Cleaning N rooms in a hotel scales linearly O(N). Sweeping a single lobby takes O(1) time. Scrubbing every room against every other room to check for dust pairs scales quadratically O(N^2)."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Asymptotic Growth Curve",
+        "description": "As input size N scales to infinity, quadratic growth N^2 dominates linear growth N.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "compare(N=10)",
+            "details": "N=10: Linear = 10, Quadratic = 100"
+          },
+          {
+            "action": "push",
+            "frame": "compare(N=100)",
+            "details": "N=100: Linear = 100, Quadratic = 10000"
+          },
+          {
+            "action": "pop",
+            "frame": "compare()",
+            "details": "Quadratic growth rate dwarfs linear as N scales."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a function `get_first_element(lst)` that returns the first element of a list. If the list is empty, return `None` (Demonstrates O(1) time).",
+      "code_template": "def get_first_element(lst):\n    # O(1) logic\n    pass",
+      "test_cases": [
+        {
+          "input": "[5, 10, 15]",
+          "expected": "5"
+        },
+        {
+          "input": "[]",
+          "expected": "None"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `contains_value(lst, target)` that checks if a list contains a target value by scanning it (Demonstrates O(N) time).",
+      "code_template": "def contains_value(lst, target):\n    # O(N) logic\n    pass",
+      "test_cases": [
+        {
+          "input": "[1, 2, 3, 4], 3",
+          "expected": "True"
+        },
+        {
+          "input": "[1, 2, 3, 4], 9",
+          "expected": "False"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Asymptotic Notation in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Asymptotic Notation",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does Big O represent?",
+          "back": "Worst-case upper bound of runtime growth rate."
+        },
+        {
+          "front": "What does Big Omega represent?",
+          "back": "Best-case lower bound of runtime growth rate."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "lesson": {
+    "id": "elementary-data-structures",
+    "title": "Elementary Data Structures",
+    "interview_coverage": {
+      "topic": "Elementary Data Structures",
+      "stars": 4,
+      "companies": [
+        "Microsoft",
+        "Flipkart",
+        "TCS"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement Singly and Doubly Linked Lists",
+        "Understand Stack and Queue operations",
+        "Evaluate time complexities of array insertions",
+        "Handle linked list pointer updates safely"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the time complexity of deleting the first element in a standard Array of size N?",
+      "choices": [
+        "A: O(1)",
+        "B: O(N)",
+        "C: O(log N)"
+      ],
+      "correct_choice": "B",
+      "explanation": "Deleting the first array element requires shifting all remaining N-1 elements left, taking O(N) linear time."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "The Linked Train",
+      "analogy_description": "An array is like a row of movie theater seats. Inserting someone in the middle requires shifting everyone down. A linked list is like a train: nodes link to the next. Inserting a train car only requires uncoupling and re-pointing."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Singly Linked List Nodes",
+        "description": "Nodes linking sequentially via next pointers.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "node1(val=12, next=node2)",
+            "details": "Head node 12 points to node 2"
+          },
+          {
+            "action": "push",
+            "frame": "node2(val=99, next=None)",
+            "details": "Tail node 99 points to None"
+          },
+          {
+            "action": "pop",
+            "frame": "node2()",
+            "details": "Popping tail"
+          },
+          {
+            "action": "pop",
+            "frame": "node1()",
+            "details": "Popping head"
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "We have defined a basic Node class. Write a function `get_val(node)` that returns the value of that node.",
+      "code_template": "class Node:\n    def __init__(self, val):\n        self.val = val\n        self.next = None\n\ndef get_val(node):\n    # Return node value\n    pass",
+      "test_cases": [
+        {
+          "input": "Node(42)",
+          "expected": "42"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `length_of_list(head)` that takes the head Node of a singly linked list and returns its length. Traverse until `next` is `None`.",
+      "code_template": "def length_of_list(head):\n    # Traverse and count\n    pass",
+      "test_cases": [
+        {
+          "input": "None",
+          "expected": "0"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Elementary Data Structures in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Elementary Data Structures",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is the key advantage of a Doubly Linked List over a Singly Linked List?",
+          "back": "Bidirectional traversal (prev and next pointers)."
+        },
+        {
+          "front": "What are Stack and Queue insertion terms?",
+          "back": "Push/Enqueue (add) and Pop/Dequeue (remove)."
+        }
+      ]
+    }
+  ]
+}

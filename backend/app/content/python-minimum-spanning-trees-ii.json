@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "minimum-spanning-trees-ii",
+    "title": "Minimum Spanning Trees II",
+    "interview_coverage": {
+      "topic": "Minimum Spanning Trees II",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Uber",
+        "Intuit"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement Prim's greedy MST algorithm",
+        "Utilize Min-Heaps to extract minimum weight edges",
+        "Analyze dense graph algorithms O(V^2)",
+        "Perform Prim vertex expansions"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "Under what condition is Prim's algorithm preferred over Kruskal's?",
+      "choices": [
+        "A: The graph is extremely sparse.",
+        "B: The graph is dense (has many edges).",
+        "C: The edge weights are negative."
+      ],
+      "correct_choice": "B",
+      "explanation": "In dense graphs where E is close to V^2, Prim's (with a Fibonacci heap) runs in O(E + V log V) which outperforms Kruskal's O(E log E) sorting time."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Paving a Parking Lot Grid",
+      "analogy_description": "Start at a single brick node. Pave paths to neighboring bricks by always picking the cheapest connection to an unpaved brick. Keep expanding your paved section outwards greedily."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Prim Edge Expansion",
+        "description": "Extracting min weight unvisited neighbors from Heap.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "heap([(2, 1), (5, 2)])",
+            "details": "Edges to unvisited nodes 1 (weight 2) and 2 (weight 5)"
+          },
+          {
+            "action": "push",
+            "frame": "extract_min()",
+            "details": "Extract node 1. Add weight 2 to MST cost."
+          },
+          {
+            "action": "pop",
+            "frame": "heap()",
+            "details": "Heap size decreased."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a function `expand_neighbors(graph, u, visited)` that returns a list of edge tuples `(weight, u, v)` connecting `u` to any unvisited neighbors `v`.",
+      "code_template": "def expand_neighbors(graph, u, visited):\n    # Return edge expansions\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [(2, 1), (5, 2)], 1: []}, 0, {0}",
+          "expected": "[(2, 0, 1), (5, 0, 2)]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a simple Prim MST cost algorithm `prim_mst_cost(graph, start)` returning the sum of weights. Use a min-heap.",
+      "code_template": "import heapq\n\ndef prim_mst_cost(graph, start):\n    # Return total MST weight\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [(2, 1), (5, 2)], 1: [(2, 0), (3, 2)], 2: [(5, 0), (3, 1)]}, 0",
+          "expected": "5"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Minimum Spanning Trees II in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Minimum Spanning Trees II",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does cut property mean in MST?",
+          "back": "For any cut of a graph, the minimum weight crossing edge belongs to the MST."
+        },
+        {
+          "front": "Does changing all edge weights by adding a constant change the MST?",
+          "back": "No, the relative order of edges remains identical, so the MST structure is unchanged."
+        }
+      ]
+    }
+  ]
+}

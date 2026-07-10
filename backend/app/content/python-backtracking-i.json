@@ -1,0 +1,117 @@
+{
+  "lesson": {
+    "id": "backtracking-i",
+    "title": "Backtracking I",
+    "interview_coverage": {
+      "topic": "Backtracking I",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Adobe",
+        "Directi"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Formulate search tree models",
+        "Implement N-Queens and Permutations recursively",
+        "Undo path states during backtracking steps",
+        "Implement basic recursion tree base cases"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the key difference between Backtracking and standard brute-force search?",
+      "choices": [
+        "A: Backtracking is iterative while brute-force is recursive.",
+        "B: Backtracking prunes subtrees early when constraints fail.",
+        "C: Backtracking does not store local arrays."
+      ],
+      "correct_choice": "B",
+      "explanation": "Backtracking incrementally builds candidates and backtracks (prunes) as soon as a candidate cannot lead to a valid configuration, reducing check iterations."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Baking cookies and undoing steps",
+      "analogy_description": "You are placing chess queens on a board. You place one. If the second conflicts, you do not place the third; you instantly remove (backtrack) the second and try another square."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Backtrack State Swap",
+        "description": "Recursion frame stack swapping values.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "permute([1, 2, 3])",
+            "details": "Swap index 0 with 0. Recurse."
+          },
+          {
+            "action": "push",
+            "frame": "permute([1, 2, 3])",
+            "details": "Swap index 1 with 2. Yield [1, 3, 2]. Backtrack."
+          },
+          {
+            "action": "pop",
+            "frame": "permute()",
+            "details": "Undo swap to restore state [1, 2, 3]."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a recursive function `permute_simple(lst)` that returns a list of all possible permutations of list elements (using recursive loops).",
+      "code_template": "def permute_simple(lst):\n    # Return permutations list\n    pass",
+      "test_cases": [
+        {
+          "input": "[1, 2]",
+          "expected": "[[1, 2], [2, 1]]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a recursive function `n_queens_count(n)` that returns the total count of valid board configurations for `n` queens on an `n x n` board.",
+      "code_template": "def n_queens_count(n):\n    # Return N-Queens solution count\n    pass",
+      "test_cases": [
+        {
+          "input": "4",
+          "expected": "2"
+        },
+        {
+          "input": "8",
+          "expected": "92"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Backtracking I in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Backtracking I",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does state restoration mean in backtracking?",
+          "back": "Undoing changes made to variables/arrays before returning from a recursive call."
+        },
+        {
+          "front": "What is the time complexity of generating all permutations of N items?",
+          "back": "O(N!) factorial complexity."
+        }
+      ]
+    }
+  ]
+}

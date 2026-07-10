@@ -174,3 +174,79 @@ async def evaluate_job_fit(request: FitScoreRequest):
     except Exception as e:
         logger.error(f"Error evaluating candidate job fit: {e}")
         return mock_response
+
+class ReferralRequest(BaseModel):
+    user_id: str
+    company_name: str
+    target_role: str
+
+class ReferralContact(BaseModel):
+    name: str
+    role: str
+    reason: str
+    outreach_template: str
+
+class ReferralResponse(BaseModel):
+    contacts: List[ReferralContact]
+
+@router.post("/referrals", response_model=ReferralResponse)
+async def find_referrals(request: ReferralRequest):
+    comp = request.company_name.strip()
+    role = request.target_role.strip()
+    
+    mock_contacts = [
+        ReferralContact(
+            name="Rahul Sharma",
+            role=f"Senior Software Engineer @ {comp}",
+            reason="Active contributor on open-source repositories and frequently comments on self-taught dev journeys.",
+            outreach_template=(
+                f"Hi Rahul,\n\nI noticed your engineering work at {comp} and saw your posts supporting self-taught developers. "
+                f"I'm a fullstack builder from India. Recently, I built CodeMate (an active DSA learning environment featuring an AST-traced call-stack whiteboard) "
+                f"and DrishtiAI (a pharmacovigilance adverse event detector selected for AI for Bharat 2026).\n\n"
+                f"I'd love to get your brief feedback on my projects, or ask if you'd be open to referring me for the {role} position. "
+                "Here is my code proof: github.com/524himanshu\n\nThanks,\nHimanshu"
+            )
+        ),
+        ReferralContact(
+            name="Priya Patel",
+            role=f"Engineering Manager @ {comp}",
+            reason="Managed engineering bootcamps and regularly hires non-traditional backgrounds.",
+            outreach_template=(
+                f"Hi Priya,\n\nI hope you're well. I saw that you manage engineering squads at {comp} and have hired builders from non-traditional CS backgrounds. "
+                f"I'm an SDE applicant with no CS degree but 100% shipped code. I've designed asynchronous payout engines using Celery and Redis, and built "
+                "AI-driven semantic parsing tools. I would love to learn what {comp} expects from SDE candidates, and if I could share my resume with you.\n\n"
+                "Warm regards,\nHimanshu"
+            )
+        )
+    ]
+    
+    if gemini_service.is_mock():
+        return ReferralResponse(contacts=mock_contacts)
+        
+    prompt = f"""
+    Generate 2 potential engineering contacts at '{comp}' who might refer a self-taught candidate for a '{role}' role.
+    Provide:
+    1. A realistic name.
+    2. An engineering role at {comp}.
+    3. A realistic reason why they are a good target (e.g. active on open-source, non-traditional background, active recruiter).
+    4. A highly personalized, brief, professional cold outreach message. Mention the candidate's core projects (CodeMate, DrishtiAI) and focus on showing code proof (github.com/524himanshu) instead of credentials.
+    
+    Ensure you output valid JSON matching the schema.
+    """
+    
+    system_instruction = (
+        "You are an expert career network coach. "
+        "Your task is to identify targets and write personalized cold outreach emails "
+        "that get responses by focusing on code proof and builder-mindset. Return a structured JSON response."
+    )
+    
+    try:
+        response_text = await gemini_service.generate_structured_json(
+            prompt=prompt,
+            response_schema=ReferralResponse,
+            system_instruction=system_instruction
+        )
+        return json.loads(response_text)
+    except Exception as e:
+        logger.error(f"Error generating referral outreach: {e}")
+        return ReferralResponse(contacts=mock_contacts)

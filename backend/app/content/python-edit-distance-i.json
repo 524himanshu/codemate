@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "edit-distance-i",
+    "title": "Edit Distance I",
+    "interview_coverage": {
+      "topic": "Edit Distance I",
+      "stars": 4,
+      "companies": [
+        "Amazon",
+        "Uber",
+        "Microsoft"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Define Levenshtein Edit Distance operations",
+        "Map recurrence relations of edit alignments",
+        "Identify subproblem boundaries recursively",
+        "Identify redundant character path evaluations"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the cost of converting string 'cat' to 'char' if insertion/deletion costs 1?",
+      "choices": [
+        "A: 1",
+        "B: 2",
+        "C: 3"
+      ],
+      "correct_choice": "B",
+      "explanation": "Replace 't' with 'h' (cost 1) and insert 'r' (cost 1). Total edit distance is 2."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Autocorrect Engine",
+      "analogy_description": "Your keyboard corrects 'hellp' to 'hello'. It searches its vocabulary for words with minimum edit distances (operations required to change characters) to correct spelling errors."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Edit Recurrence Split",
+        "description": "Choosing minimum cost among Insert, Delete, and Replace.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "edit('cat', 'cut')",
+            "details": "Last characters match ('t'). edit('ca', 'cu')."
+          },
+          {
+            "action": "push",
+            "frame": "replace('ca', 'cu')",
+            "details": "Mismatch. Try replace 'a' with 'u'. Recurse."
+          },
+          {
+            "action": "pop",
+            "frame": "replace()",
+            "details": "Return min cost."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a simple recursive edit distance function `edit_dist_rec(s1, s2, m, n)` without caching to observe recurrence flow.",
+      "code_template": "def edit_dist_rec(s1, s2, m, n):\n    # Recursive edit distance\n    pass",
+      "test_cases": [
+        {
+          "input": "\"cat\", \"cut\", 3, 3",
+          "expected": "1"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a memoized edit distance function `edit_dist_memo(s1, s2, m, n, memo=None)` that caches results in a dictionary to prevent O(3^N) growth.",
+      "code_template": "def edit_dist_memo(s1, s2, m, n, memo=None):\n    # Memoized edit distance\n    pass",
+      "test_cases": [
+        {
+          "input": "\"sunday\", \"saturday\", 6, 8",
+          "expected": "3"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Edit Distance I in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Edit Distance I",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What are the three allowed operations in Levenshtein distance?",
+          "back": "Insertion, Deletion, and Substitution."
+        },
+        {
+          "front": "What is the base case of edit distance between empty string and string of length L?",
+          "back": "L operations (inserting or deleting all L characters)."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "lesson": {
+    "id": "backtracking-ii",
+    "title": "Backtracking II",
+    "interview_coverage": {
+      "topic": "Backtracking II",
+      "stars": 4,
+      "companies": [
+        "Amazon",
+        "Uber",
+        "Facebook"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement subsets and combination solvers",
+        "Prune recursion subtrees mathematically",
+        "Analyze search space branching factors",
+        "Implement Sudoku verification steps"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the time complexity of generating all subsets of a set of size N?",
+      "choices": [
+        "A: O(N!)",
+        "B: O(2^N)",
+        "C: O(N^2)"
+      ],
+      "correct_choice": "B",
+      "explanation": "Every element has 2 choices: either belong to the subset or not. For N elements, this yields 2^N total subsets."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Filling a Shopping Cart",
+      "analogy_description": "For every item in a grocery store, you make a binary decision: place it in the cart, or skip it. Navigating all yes/no decisions creates a tree of 2^N possible grocery bills."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Pruned Decision Tree",
+        "description": "Skip nodes exceeding target search values.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "sum(node=12, current=15)",
+            "details": "Current sum is 15. Target is 10. PRUNE!"
+          },
+          {
+            "action": "pop",
+            "frame": "sum()",
+            "details": "Return immediately without exploring children."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a recursive function `subsets_simple(lst)` that returns a list of all subsets (the power set) of a given list of unique integers.",
+      "code_template": "def subsets_simple(lst):\n    # Return list of subsets\n    pass",
+      "test_cases": [
+        {
+          "input": "[1, 2]",
+          "expected": "[[], [1], [2], [1, 2]]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `sudoku_is_valid(board, row, col, val)` that returns `True` if `val` can be placed at `board[row][col]` without conflicts in row, column, or 3x3 grid.",
+      "code_template": "def sudoku_is_valid(board, row, col, val):\n    # Validate Sudoku placement\n    pass",
+      "test_cases": [
+        {
+          "input": "[[5, 0, 0], [0, 0, 0], [0, 0, 0]], 0, 1, 5",
+          "expected": "False"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Backtracking II in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Backtracking II",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does constraint propagation mean in Sudoku solvers?",
+          "back": "Using rules to reduce possible values for cells, reducing backtracking branch checks."
+        },
+        {
+          "front": "How do you prune subset sums that exceed target sum T?",
+          "back": "By returning immediately if the current path sum exceeds T (assuming positive integers)."
+        }
+      ]
+    }
+  ]
+}

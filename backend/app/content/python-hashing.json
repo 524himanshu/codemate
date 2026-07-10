@@ -1,0 +1,121 @@
+{
+  "lesson": {
+    "id": "hashing",
+    "title": "Hashing",
+    "interview_coverage": {
+      "topic": "Hashing",
+      "stars": 4,
+      "companies": [
+        "Uber",
+        "Google",
+        "LinkedIn"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Define Hash Functions and Hash Tables",
+        "Handle Hash Collisions via chaining",
+        "Analyze average and worst-case loads",
+        "Implement Set-based deduplications"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the worst-case lookup time in a Hash Table when all keys collide?",
+      "choices": [
+        "A: O(1)",
+        "B: O(N)",
+        "C: O(log N)"
+      ],
+      "correct_choice": "B",
+      "explanation": "If all keys collide and chain onto a single linked list, searching for a key requires traversing the entire list of N elements, taking O(N) time."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Mailboxes in Apartment",
+      "analogy_description": "Each apartment has a box number. A hash function takes your name and tells you which mailbox slot is yours. If two people share a mailbox slot, they chain their letters (collision)."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Hash Table Array Slots",
+        "description": "Mapping keys to integer bucket indices.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "hash('apple')",
+            "details": "'apple' hashes to slot index 4"
+          },
+          {
+            "action": "push",
+            "frame": "insert(slot=4, val='apple')",
+            "details": "Place in slot 4 chain."
+          },
+          {
+            "action": "pop",
+            "frame": "insert()",
+            "details": "Insertion complete"
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a simple hash function `mod_hash(key, size)` that takes an integer key and table size, and returns the modulus remainder index (`key % size`).",
+      "code_template": "def mod_hash(key, size):\n    # Return modulus hash\n    pass",
+      "test_cases": [
+        {
+          "input": "15, 10",
+          "expected": "5"
+        },
+        {
+          "input": "28, 12",
+          "expected": "4"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `has_duplicates_set(lst)` that takes a list of integers and returns `True` if it contains duplicate numbers, and `False` otherwise using a Set.",
+      "code_template": "def has_duplicates_set(lst):\n    # Use set deduplication\n    pass",
+      "test_cases": [
+        {
+          "input": "[1, 2, 3, 4, 1]",
+          "expected": "True"
+        },
+        {
+          "input": "[1, 2, 3, 4]",
+          "expected": "False"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Hashing in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Hashing",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is a hash collision?",
+          "back": "When two distinct keys produce the same hash index value."
+        },
+        {
+          "front": "What are two collision resolution strategies?",
+          "back": "Chaining (linked lists) and Open Addressing (linear/quadratic probing)."
+        }
+      ]
+    }
+  ]
+}

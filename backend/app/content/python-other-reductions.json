@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "other-reductions",
+    "title": "Other Reductions",
+    "interview_coverage": {
+      "topic": "Other Reductions",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Microsoft",
+        "Jane Street"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Formulate polynomial reductions",
+        "Map Vertex Cover to Independent Set",
+        "Map Subset Sum to Knapsack",
+        "Understand reductions mapping difficulty"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "If problem A reduces to problem B, and B is NP-complete, what does this say about A?",
+      "choices": [
+        "A: A is also NP-complete.",
+        "B: A is at most as hard as B (A is in NP).",
+        "C: A is unsolvable."
+      ],
+      "correct_choice": "B",
+      "explanation": "Reduction shows that A <= B in difficulty. If B is hard, A could be easy. Only if A is NP-complete and reduces to B does it prove B is NP-complete."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "The Language Translator",
+      "analogy_description": "If you have a Spanish-to-English translator, and you want to read a French book, you first translate French to Spanish. The translation step is the reduction, mapping the unknown to the solved."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Reduction Transformer pipeline",
+        "description": "Converting input instance A to output instance B.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "input_instance(A)",
+            "details": "Given instance of problem A"
+          },
+          {
+            "action": "push",
+            "frame": "transform(A -> B)",
+            "details": "Polynomial-time mapping to instance of problem B"
+          },
+          {
+            "action": "pop",
+            "frame": "transform()",
+            "details": "Solve B using B's solver."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a reduction function `reduce_subset_sum_to_knapsack(lst, target)` that returns a tuple of lists `(weights, values, capacity)` to solve subset sum via knapsack.",
+      "code_template": "def reduce_subset_sum_to_knapsack(lst, target):\n    # Map subset sum to knapsack parameters\n    pass",
+      "test_cases": [
+        {
+          "input": "[2, 5, 8], 7",
+          "expected": "([2, 5, 8], [2, 5, 8], 7)"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a reduction function `vertex_cover_to_independent_set(graph, vc_size)` that returns the target size `k` of the independent set in graph of `n` vertices.",
+      "code_template": "def vertex_cover_to_independent_set(graph, vc_size):\n    # Independent Set size k = n - vc_size\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1], 1: [0]}, 1",
+          "expected": "1"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Other Reductions in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Other Reductions",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does polynomial-time reducible A <=p B mean?",
+          "back": "An instance of A can be converted to an instance of B in polynomial time."
+        },
+        {
+          "front": "What was Karp's 21 NP-complete problems list?",
+          "back": "A famous 1972 paper showing reductions from SAT to 21 combinatorial problems, proving their NP-completeness."
+        }
+      ]
+    }
+  ]
+}

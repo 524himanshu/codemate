@@ -212,4 +212,54 @@ export const api = {
     }
     return res.json();
   },
+
+  async startInterview(userId: string, role: string, difficulty: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/interview/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, role, difficulty }),
+    });
+    if (!res.ok) throw new Error("Failed to start mock interview");
+    return res.json();
+  },
+
+  async sendInterviewMessage(sessionId: string, message: string, code: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/interview/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, message, code }),
+    });
+    if (!res.ok) throw new Error("Failed to send message to interviewer");
+    return res.json();
+  },
+
+  async evaluateInterview(sessionId: string, code: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/interview/evaluate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, code }),
+    });
+    if (!res.ok) throw new Error("Failed to evaluate interview solution");
+    return res.json();
+  },
+
+  async findReferrals(userId: string, companyName: string, targetRole: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/resume/referrals`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, company_name: companyName, target_role: targetRole }),
+    });
+    if (!res.ok) throw new Error("Failed to find referral outreach contacts");
+    return res.json();
+  },
+
+  async summarizeResource(url: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/roadmap/summarize`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) throw new Error("Failed to summarize target resource link");
+    return res.json();
+  },
 };

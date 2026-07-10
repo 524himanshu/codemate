@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "heapsort-priority-queues",
+    "title": "Heapsort / Priority Queues",
+    "interview_coverage": {
+      "topic": "Heapsort / Priority Queues",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Adobe",
+        "Groww"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Differentiate Min-Heap and Max-Heap properties",
+        "Implement Heapsort from memory",
+        "Utilize priority queues for top-k selections",
+        "Analyze heap element insertions O(log N)"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the time complexity of building a heap from an unsorted array of size N?",
+      "choices": [
+        "A: O(N log N)",
+        "B: O(N)",
+        "C: O(N^2)"
+      ],
+      "correct_choice": "B",
+      "explanation": "Using bottom-up heapification (sift-down on internal nodes), building a heap of size N takes linear O(N) time."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Emergency Room Triage",
+      "analogy_description": "Patients enter the ER with urgency priorities. The doctor treats the most critical patient first (max priority extraction), regardless of who arrived first."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Min-Heap Heapify Up",
+        "description": "Swapping nodes to maintain parent <= children constraints.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "insert(val=3)",
+            "details": "Adding 3 as leaf node of parent 12"
+          },
+          {
+            "action": "push",
+            "frame": "swap(3, 12)",
+            "details": "3 < 12. Swapping nodes to maintain min-heap."
+          },
+          {
+            "action": "pop",
+            "frame": "swap()",
+            "details": "Heap property restored."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Import `heapq`. Write a function `get_min_heapq(lst)` that takes a list of numbers, heapifies it, and returns the smallest element using `heapq` functions.",
+      "code_template": "import heapq\n\ndef get_min_heapq(lst):\n    # Use heapq to return min\n    pass",
+      "test_cases": [
+        {
+          "input": "[9, 4, 7, 2, 8]",
+          "expected": "2"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `k_largest(lst, k)` that returns the `k` largest elements in a list, sorted in descending order, utilizing heap operations.",
+      "code_template": "import heapq\n\ndef k_largest(lst, k):\n    # Return k largest values\n    pass",
+      "test_cases": [
+        {
+          "input": "[3, 10, 5, 20, 8], 2",
+          "expected": "[20, 10]"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Heapsort / Priority Queues in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Heapsort / Priority Queues",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is the worst-case complexity of Heapsort?",
+          "back": "O(N log N) in all cases (best, worst, average)."
+        },
+        {
+          "front": "What are the parent/child index equations for a heap stored in an array at index i?",
+          "back": "Left child: 2i + 1, Right child: 2i + 2, Parent: (i - 1) // 2."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "lesson": {
+    "id": "np-completeness-challenge",
+    "title": "The NP-Completeness Challenge",
+    "interview_coverage": {
+      "topic": "The NP-Completeness Challenge",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Facebook",
+        "Microsoft"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Analyze the P vs NP Millennium Prize problem",
+        "Verify Vertex Cover candidates in graphs",
+        "Understand greedy approximation algorithms",
+        "Evaluate bounds of vertex cover checks"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the value of the Millennium Prize for proving whether P = NP?",
+      "choices": [
+        "A: $10,000",
+        "B: $100,000",
+        "C: $1,000,000"
+      ],
+      "correct_choice": "C",
+      "explanation": "The Clay Mathematics Institute offers a $1,000,000 Millennium Prize for a correct proof solving P vs NP."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "The Holy Grail of Computing",
+      "analogy_description": "If P = NP, it means checking a solution (verifying proof) is as easy as finding it. This would break cryptography (RSA keys cracked instantly) but optimize all supply chain grids globally."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "P vs NP Collapse Map",
+        "description": "Complexity classes merging if P equals NP.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "NP-complete",
+            "details": "Hardest verification tasks"
+          },
+          {
+            "action": "push",
+            "frame": "collapse(NP -> P)",
+            "details": "All NP-complete problems solved in polynomial time!"
+          },
+          {
+            "action": "pop",
+            "frame": "collapse()",
+            "details": "P equals NP."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a function `is_vertex_cover(graph, vertices)` that checks if the set `vertices` covers all edges in the graph (i.e. every edge in `graph` has at least one endpoint in `vertices`).",
+      "code_template": "def is_vertex_cover(graph, vertices):\n    # Return True if vertices covers all edges\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1], 1: [0]}, [0]",
+          "expected": "True"
+        },
+        {
+          "input": "{0: [1], 1: [0]}, []",
+          "expected": "False"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a greedy vertex cover approximation algorithm `approx_vertex_cover(graph)` that picks edges, adds both endpoints to cover, removes adjacent edges, and returns cover.",
+      "code_template": "def approx_vertex_cover(graph):\n    # Greedy 2-approximation vertex cover\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1], 1: [0]}",
+          "expected": "[0, 1]"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain The NP-Completeness Challenge in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "The NP-Completeness Challenge",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does a 2-approximation algorithm guarantee?",
+          "back": "A solution that is at worst twice as large as the optimal solution."
+        },
+        {
+          "front": "Is approximation possible for all NP-hard problems?",
+          "back": "No, some problems (like TSP without triangle inequality) cannot be approximated within any constant factor unless P = NP."
+        }
+      ]
+    }
+  ]
+}

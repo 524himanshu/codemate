@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "breadth-first-search",
+    "title": "Breadth-First Search",
+    "interview_coverage": {
+      "topic": "Breadth-First Search",
+      "stars": 4,
+      "companies": [
+        "Uber",
+        "Google",
+        "Ola"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement Breadth-First Search (BFS) using a Queue",
+        "Traverse graph level-by-level",
+        "Find shortest paths in unweighted graphs",
+        "Manage visited node sets to prevent loop cycles"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the time complexity of traversing a graph with V vertices and E edges using BFS?",
+      "choices": [
+        "A: O(V)",
+        "B: O(V + E)",
+        "C: O(V * E)"
+      ],
+      "correct_choice": "B",
+      "explanation": "BFS visits every vertex once and checks every edge of the adjacency list once, yielding O(V + E) complexity."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Water Ripple",
+      "analogy_description": "Dropping a stone in water creates waves that spread outwards level by level. BFS traverses nodes similarly, visiting all direct neighbors first, then neighbors of neighbors."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "BFS Queue Traversal",
+        "description": "FIFO queue containing nodes to visit next.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "queue([0])",
+            "details": "Queue start at 0"
+          },
+          {
+            "action": "push",
+            "frame": "queue([1, 2])",
+            "details": "Pop 0. Queue neighbors 1 and 2."
+          },
+          {
+            "action": "pop",
+            "frame": "queue()",
+            "details": "Explore level-by-level."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a function `bfs_traverse(graph, start)` that returns a list of vertices in BFS order. Use a list/deque as FIFO queue.",
+      "code_template": "from collections import deque\n\ndef bfs_traverse(graph, start):\n    # Traversal in BFS order\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1, 2], 1: [0], 2: [0]}, 0",
+          "expected": "[0, 1, 2]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `shortest_path_unweighted(graph, start, end)` that returns the minimum number of edges between `start` and `end` using BFS. If path doesn't exist, return `-1`.",
+      "code_template": "from collections import deque\n\ndef shortest_path_unweighted(graph, start, end):\n    # Return path length\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1], 1: [0, 2], 2: [1]}, 0, 2",
+          "expected": "2"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Breadth-First Search in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Breadth-First Search",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "Does BFS guarantee shortest path in weighted graphs?",
+          "back": "No, it only guarantees shortest path on unweighted (equal weight) edges."
+        },
+        {
+          "front": "What state flags are typically used in BFS?",
+          "back": "Visited (boolean set/array) and Parent (mapping array)."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "linear-sorting",
+    "title": "Linear Sorting",
+    "interview_coverage": {
+      "topic": "Linear Sorting",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Facebook",
+        "Deliveroo"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Understand linear bounds bypassing comparison sorting limits",
+        "Implement Counting Sort algorithm",
+        "Implement Bucket and Radix Sort algorithms",
+        "Evaluate constraints on linear sorting ranges"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the theoretical lower limit of comparison-based sorting runtimes?",
+      "choices": [
+        "A: O(N)",
+        "B: O(N log N)",
+        "C: O(N^2)"
+      ],
+      "correct_choice": "B",
+      "explanation": "A decision tree model for sorting N elements has N! leaves. The height of the tree is log(N!) which is Omega(N log N) minimum comparison steps."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Pigeonhole Cabinet",
+      "analogy_description": "If you sort letters by zip codes, you don't compare them. You look at the zip code and drop it directly into its assigned slot. This bypasses comparisons."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Counting Tally Array",
+        "description": "Counting element occurrences to build sorted arrays.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "tally([1, 0, 1])",
+            "details": "Counts: 0: 1, 1: 2"
+          },
+          {
+            "action": "push",
+            "frame": "rebuild()",
+            "details": "Rebuild array: [0, 1, 1]"
+          },
+          {
+            "action": "pop",
+            "frame": "rebuild()",
+            "details": "Rebuilt sorted list."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a simple Counting Sort function `counting_sort_simple(lst, max_val)` that sorts a list of non-negative integers up to `max_val`.",
+      "code_template": "def counting_sort_simple(lst, max_val):\n    # Write counting sort\n    pass",
+      "test_cases": [
+        {
+          "input": "[2, 0, 2, 1], 2",
+          "expected": "[0, 1, 2, 2]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a simple bucket sort `bucket_sort_simple(lst)` that sorts positive float numbers between 0 and 1 using 5 buckets.",
+      "code_template": "def bucket_sort_simple(lst):\n    # Implement basic bucket sort\n    pass",
+      "test_cases": [
+        {
+          "input": "[0.3, 0.1, 0.9, 0.5]",
+          "expected": "[0.1, 0.3, 0.5, 0.9]"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Linear Sorting in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Linear Sorting",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does Radix Sort rely on?",
+          "back": "Stable sorting digit-by-digit from least significant to most significant."
+        },
+        {
+          "front": "Can Counting Sort handle float numbers?",
+          "back": "No, it requires distinct integer indices to tally frequencies."
+        }
+      ]
+    }
+  ]
+}

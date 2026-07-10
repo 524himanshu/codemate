@@ -1,0 +1,123 @@
+{
+  "lesson": {
+    "id": "depth-first-search",
+    "title": "Depth-First Search",
+    "interview_coverage": {
+      "topic": "Depth-First Search",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Deliveroo",
+        "Atlassian"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement Depth-First Search (DFS) recursively",
+        "Utilize Stack data structures for iterative DFS",
+        "Solve path connectivity checks",
+        "Identify graph cycle detections"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the recursion call stack height during a DFS traversal of a straight-line graph of N nodes?",
+      "choices": [
+        "A: O(1)",
+        "B: O(log N)",
+        "C: O(N)"
+      ],
+      "correct_choice": "C",
+      "explanation": "For a linear tree graph, DFS goes all the way down, adding N stack frames onto the recursion call stack, taking O(N) space."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Solving a Maze",
+      "analogy_description": "You walk forward in a maze. If you hit a dead end, you backtrack to the last intersection, unwind the string, and try the next direction. This is DFS."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "DFS Recursion Stack",
+        "description": "Call stack frames representing active depth path search.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "dfs(0)",
+            "details": "Visiting node 0"
+          },
+          {
+            "action": "push",
+            "frame": "dfs(1)",
+            "details": "Go deep to neighbor 1"
+          },
+          {
+            "action": "push",
+            "frame": "dfs(2)",
+            "details": "Go deep to neighbor 2 (leaf node)"
+          },
+          {
+            "action": "pop",
+            "frame": "dfs(2)",
+            "details": "Backtrack from 2"
+          },
+          {
+            "action": "pop",
+            "frame": "dfs(1)",
+            "details": "Backtrack from 1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a recursive function `dfs_traverse(graph, start)` that returns a list of vertices in DFS order (pre-order). Keep a visited set.",
+      "code_template": "def dfs_traverse(graph, start):\n    # Recursive DFS list\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1, 2], 1: [0], 2: [0]}, 0",
+          "expected": "[0, 1, 2]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `has_path(graph, start, end)` that returns `True` if a path exists between `start` and `end` using DFS, and `False` otherwise.",
+      "code_template": "def has_path(graph, start, end):\n    # Return path presence\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1], 1: [0], 2: []}, 0, 2",
+          "expected": "False"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Depth-First Search in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Depth-First Search",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is topological sort based on?",
+          "back": "Post-order DFS traversal of a Directed Acyclic Graph (DAG)."
+        },
+        {
+          "front": "How do you detect a cycle in a directed graph using DFS?",
+          "back": "By tracking nodes currently in the recursion stack (back edge checking)."
+        }
+      ]
+    }
+  ]
+}

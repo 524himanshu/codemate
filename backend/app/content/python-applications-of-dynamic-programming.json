@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "applications-of-dynamic-programming",
+    "title": "Applications of Dynamic Programming",
+    "interview_coverage": {
+      "topic": "Applications of Dynamic Programming",
+      "stars": 4,
+      "companies": [
+        "TCS",
+        "Infosys",
+        "Google"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement Longest Common Subsequence (LCS)",
+        "Solve matrix chain multiplication bounds",
+        "Analyze sequence alignments in genetics",
+        "Reconstruct sequence matching tables"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the recurrence step for LCS of strings s1 and s2 if characters match (`s1[i] == s2[j]`)?",
+      "choices": [
+        "A: lcs(i, j) = lcs(i-1, j-1) + 1",
+        "B: lcs(i, j) = max(lcs(i-1, j), lcs(i, j-1))",
+        "C: lcs(i, j) = lcs(i-1, j-1)"
+      ],
+      "correct_choice": "A",
+      "explanation": "If characters match, they belong to the common subsequence; we add 1 and solve for the remaining substrings."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Comparing DNA Strands",
+      "analogy_description": "Biologists match DNA strings. Longest Common Subsequence (LCS) helps find matching gene sequences that occur in the same order but not necessarily consecutively."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "LCS DP Table Fill",
+        "description": "Tracing subproblem matches across matrix coordinates.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "match('A', 'A')",
+            "details": "Chars match. Set cell value to 1 + diagonal cell value."
+          },
+          {
+            "action": "push",
+            "frame": "mismatch('A', 'B')",
+            "details": "Mismatch. Set cell to max of left and top cell values."
+          },
+          {
+            "action": "pop",
+            "frame": "match()",
+            "details": "Grid cell solved."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a recursive LCS function `lcs_rec(s1, s2, i, j)` that returns the length of the longest common subsequence.",
+      "code_template": "def lcs_rec(s1, s2, i, j):\n    # Recursive LCS\n    pass",
+      "test_cases": [
+        {
+          "input": "\"abc\", \"ac\", 3, 2",
+          "expected": "2"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a bottom-up tabulated LCS function `lcs_tab(s1, s2)` that returns the LCS length.",
+      "code_template": "def lcs_tab(s1, s2):\n    # Tabulated LCS\n    pass",
+      "test_cases": [
+        {
+          "input": "\"abcdef\", \"acef\"",
+          "expected": "4"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Applications of Dynamic Programming in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Applications of Dynamic Programming",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is the difference between Substring and Subsequence?",
+          "back": "Substrings must occur consecutively in the string; Subsequences do not need to be consecutive."
+        },
+        {
+          "front": "What is the runtime of bottom-up LCS?",
+          "back": "O(M * N) where M and N are the string lengths."
+        }
+      ]
+    }
+  ]
+}

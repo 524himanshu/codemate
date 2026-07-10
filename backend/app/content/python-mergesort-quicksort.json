@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "mergesort-quicksort",
+    "title": "Mergesort / Quicksort",
+    "interview_coverage": {
+      "topic": "Mergesort / Quicksort",
+      "stars": 4,
+      "companies": [
+        "Amazon",
+        "Uber",
+        "Paytm"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Implement Merge Sort recursion split and merge",
+        "Configure Quick Sort pivots and partitions",
+        "Understand divide and conquer algorithmic design",
+        "Differentiate average O(N log N) from worst-case O(N^2)"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the worst-case runtime complexity of Quick Sort?",
+      "choices": [
+        "A: O(N log N)",
+        "B: O(N^2)",
+        "C: O(N)"
+      ],
+      "correct_choice": "B",
+      "explanation": "If the pivot choice is consistently the smallest or largest element, partitioning splits N elements into segments of 0 and N-1, creating O(N^2) runtime."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Sorting Cards",
+      "analogy_description": "Merge sort splits a deck of cards into two piles, sorts them recursively, and merges them. Quick sort picks a card as pivot, places smaller cards on the left, larger on the right, and repeats."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Merge Sort recursion split",
+        "description": "Splitting array into halves recursively.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "sort([3, 1, 4, 2])",
+            "details": "Split into [3, 1] and [4, 2]"
+          },
+          {
+            "action": "push",
+            "frame": "sort([3, 1])",
+            "details": "Split into [3] and [1]. Sort and merge to [1, 3]."
+          },
+          {
+            "action": "pop",
+            "frame": "sort()",
+            "details": "Return sorted halves"
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a helper function `merge_sorted(l1, l2)` that takes two sorted lists and merges them into a single sorted list in O(N) time.",
+      "code_template": "def merge_sorted(l1, l2):\n    # Merge sorted lists\n    pass",
+      "test_cases": [
+        {
+          "input": "[1, 3], [2, 4]",
+          "expected": "[1, 2, 3, 4]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a simple Quick Sort implementation `quick_sort_simple(lst)` that selects the first element as pivot, splits list by list comprehension, and returns sorted result.",
+      "code_template": "def quick_sort_simple(lst):\n    # Implement simple quicksort\n    pass",
+      "test_cases": [
+        {
+          "input": "[3, 6, 2, 8, 1]",
+          "expected": "[1, 2, 3, 6, 8]"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Mergesort / Quicksort in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Mergesort / Quicksort",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "Is Merge Sort stable?",
+          "back": "Yes, it preserves the relative order of duplicate elements."
+        },
+        {
+          "front": "What is the auxiliary space complexity of Merge Sort?",
+          "back": "O(N) due to temporary arrays allocated during merging."
+        }
+      ]
+    }
+  ]
+}

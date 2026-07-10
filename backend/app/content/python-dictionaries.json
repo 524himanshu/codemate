@@ -1,0 +1,121 @@
+{
+  "lesson": {
+    "id": "dictionaries",
+    "title": "Dictionaries",
+    "interview_coverage": {
+      "topic": "Dictionaries",
+      "stars": 4,
+      "companies": [
+        "Amazon",
+        "PhonePe",
+        "Netflix"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Understand Key-Value collection operations",
+        "Analyze search times of Dictionary lookups",
+        "Configure default keys using default dicts",
+        "Manage key collisions and deletions"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What happens if you insert a duplicate key into a Dictionary?",
+      "choices": [
+        "A: It throws a KeyError.",
+        "B: It overwrites the existing value mapped to that key.",
+        "C: It appends the value to an internal array list."
+      ],
+      "correct_choice": "B",
+      "explanation": "Keys in a Dictionary must be unique; inserting a duplicate key replaces the existing value associated with it."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "The Cubby Organizer",
+      "analogy_description": "A dictionary is like an organizer with labeled cubbies. You look up a cubby by its name label (the key) and get its contents (the value) instantly without searching other cubbies."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Key-Value Store Lookups",
+        "description": "Checking key presence in O(1) average time.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "get('alice')",
+            "details": "Query dictionary for key 'alice'"
+          },
+          {
+            "action": "push",
+            "frame": "match(alice -> 24)",
+            "details": "Key found. Return age 24."
+          },
+          {
+            "action": "pop",
+            "frame": "match()",
+            "details": "Lookup complete."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a function `get_age(dict_data, name)` that returns the age value associated with the key `name` in dictionary `dict_data`. If the key is missing, return `None`.",
+      "code_template": "def get_age(dict_data, name):\n    # Lookup age\n    pass",
+      "test_cases": [
+        {
+          "input": "{\"Alice\": 25, \"Bob\": 30}, \"Alice\"",
+          "expected": "25"
+        },
+        {
+          "input": "{\"Alice\": 25, \"Bob\": 30}, \"Charlie\"",
+          "expected": "None"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `merge_dicts(d1, d2)` that returns a single merged dictionary. If keys overlap, values from `d2` should overwrite `d1`.",
+      "code_template": "def merge_dicts(d1, d2):\n    # Merge dictionaries\n    pass",
+      "test_cases": [
+        {
+          "input": "{\"a\": 1}, {\"b\": 2}",
+          "expected": "{'a': 1, 'b': 2}"
+        },
+        {
+          "input": "{\"a\": 1}, {\"a\": 9}",
+          "expected": "{'a': 9}"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Dictionaries in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Dictionaries",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is the average runtime complexity of dictionary search?",
+          "back": "O(1) constant time."
+        },
+        {
+          "front": "What type must keys in a dictionary be?",
+          "back": "Hashable / Immutable (e.g. strings, integers, tuples)."
+        }
+      ]
+    }
+  ]
+}

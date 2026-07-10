@@ -1,0 +1,117 @@
+{
+  "lesson": {
+    "id": "intro-to-np-completeness",
+    "title": "Introduction to NP-Completeness",
+    "interview_coverage": {
+      "topic": "Introduction to NP-Completeness",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Facebook",
+        "Microsoft"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Define P, NP, NP-complete, and NP-hard classes",
+        "Verify solution certificates in polynomial time",
+        "Understand nondeterministic Turing machines",
+        "Verify subset sum solutions"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What does the class P represent in complexity theory?",
+      "choices": [
+        "A: Problems solvable in polynomial time on deterministic machines.",
+        "B: Problems verifiable in polynomial time.",
+        "C: Problems that can never be solved."
+      ],
+      "correct_choice": "A",
+      "explanation": "P is the class of decision problems solvable in O(N^k) polynomial time on a standard deterministic computer."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Locks and Keys",
+      "analogy_description": "Finding a key that fits a lock out of a million options is hard (NP). But if someone hands you a key, checking if it fits the lock is extremely easy and fast (polynomial verification)."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Complexity Classes Venn Map",
+        "description": "Venn diagram showing P inside NP, and NP-complete intersecting NP.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "P",
+            "details": "Easy to solve (e.g., shortest paths, sorting)"
+          },
+          {
+            "action": "push",
+            "frame": "NP",
+            "details": "Easy to verify (e.g., Sudoku, Knapsack)"
+          },
+          {
+            "action": "pop",
+            "frame": "P",
+            "details": "Is P equal to NP? Still open."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a polynomial-time verifier `verify_subset_sum(lst, target, subset)` that checks if the integers in `subset` are elements of `lst` and sum to `target`.",
+      "code_template": "def verify_subset_sum(lst, target, subset):\n    # Verify subset sum certificate\n    pass",
+      "test_cases": [
+        {
+          "input": "[3, 7, 1, 9], 10, [1, 9]",
+          "expected": "True"
+        },
+        {
+          "input": "[3, 7, 1, 9], 10, [3, 9]",
+          "expected": "False"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a verifier `verify_clique(graph, clique, k)` that returns `True` if `clique` is a set of `k` vertices and every pair of vertices in `clique` is connected in `graph`.",
+      "code_template": "def verify_clique(graph, clique, k):\n    # Verify clique certificate\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1, 2], 1: [0, 2], 2: [0, 1]}, [0, 1, 2], 3",
+          "expected": "True"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Introduction to NP-Completeness in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Introduction to NP-Completeness",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does NP stand for?",
+          "back": "Nondeterministic Polynomial time."
+        },
+        {
+          "front": "What is the requirement for a problem to be NP-complete?",
+          "back": "It must be in NP, and every other problem in NP must reduce to it in polynomial time."
+        }
+      ]
+    }
+  ]
+}

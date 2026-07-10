@@ -57,9 +57,74 @@ const LESSON_FLOW: LessonState[] = [
   "MASTERY"
 ];
 
+const foundationsLessons = [
+  { id: "variables", title: "Variables & Syntax" },
+  { id: "loops", title: "Loops & Control Flow" },
+  { id: "functions", title: "Functions & Parameters" },
+  { id: "recursion", title: "Recursion & Trees" }
+];
+
+const dsaLessons = [
+  { id: "intro-to-algorithms", title: "1. Intro to Algorithms" },
+  { id: "asymptotic-notation", title: "2. Asymptotic Notation" },
+  { id: "program-analysis", title: "3. Program Analysis" },
+  { id: "elementary-data-structures", title: "4. Elementary Data Structures" },
+  { id: "dictionaries", title: "5. Dictionaries" },
+  { id: "hashing", title: "6. Hashing" },
+  { id: "heapsort-priority-queues", title: "7. Heapsort / Priority Queues" },
+  { id: "mergesort-quicksort", title: "8. Mergesort / Quicksort" },
+  { id: "linear-sorting", title: "9. Linear Sorting" },
+  { id: "graph-data-structures", title: "10. Graph Data Structures" },
+  { id: "breadth-first-search", title: "11. BFS Traversal" },
+  { id: "depth-first-search", title: "12. DFS Traversal" },
+  { id: "minimum-spanning-trees-i", title: "13. Kruskal's MST" },
+  { id: "minimum-spanning-trees-ii", title: "14. Prim's MST" },
+  { id: "shortest-paths", title: "15. Dijkstra's Paths" },
+  { id: "backtracking-i", title: "16. Backtracking I" },
+  { id: "backtracking-ii", title: "17. Backtracking II" },
+  { id: "intro-to-dynamic-programming", title: "18. Intro to DP" },
+  { id: "edit-distance-i", title: "19. Edit Distance I" },
+  { id: "edit-distance-ii", title: "20. Edit Distance II" },
+  { id: "intro-to-dynamic-programming-ii", title: "21. Knapsack DP" },
+  { id: "applications-of-dynamic-programming", title: "22. LCS Alignments" },
+  { id: "intro-to-np-completeness", title: "23. P vs NP Class" },
+  { id: "satisfiability", title: "24. SAT Solver" },
+  { id: "other-reductions", title: "25. Complexity Reductions" },
+  { id: "np-completeness-challenge", title: "26. NP-Hard Challenge" }
+];
+
 export default function App() {
   const [userId, setUserId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"roadmap" | "academy" | "resume">("roadmap");
+  const [activeTrack, setActiveTrack] = useState<"foundations" | "dsa">("foundations");
+  const [activeTab, setActiveTab] = useState<"roadmap" | "academy" | "resume" | "interview" | "review">("roadmap");
+
+  // Mock Interview States
+  const [interviewSessionId, setInterviewSessionId] = useState<string>("");
+  const [interviewRole, setInterviewRole] = useState<string>("backend");
+  const [interviewDifficulty, setInterviewDifficulty] = useState<string>("intermediate");
+  const [interviewStarted, setInterviewStarted] = useState<boolean>(false);
+  const [interviewMessages, setInterviewMessages] = useState<any[]>([]);
+  const [userInterviewInput, setUserInterviewInput] = useState<string>("");
+  const [interviewTimer, setInterviewTimer] = useState<number>(2700);
+  const [interviewTimerActive, setInterviewTimerActive] = useState<boolean>(false);
+  const [interviewGrading, setInterviewGrading] = useState<any>(null);
+  const [interviewLoading, setInterviewLoading] = useState<boolean>(false);
+  const [interviewSubmitting, setInterviewSubmitting] = useState<boolean>(false);
+  const [interviewChallenge, setInterviewChallenge] = useState<any>(null);
+
+  // Referral Finder States
+  const [referralCompany, setReferralCompany] = useState<string>("");
+  const [referralRole, setReferralRole] = useState<string>("");
+  const [referralContacts, setReferralContacts] = useState<any[]>([]);
+  const [referralLoading, setReferralLoading] = useState<boolean>(false);
+
+  // Resource Summarizer States
+  const [summarizerUrl, setSummarizerUrl] = useState<string>("");
+  const [summarizerData, setSummarizerData] = useState<any>(null);
+  const [summarizerLoading, setSummarizerLoading] = useState<boolean>(false);
+  const [summarizerQuizAnswers, setSummarizerQuizAnswers] = useState<Record<number, string>>({});
+  const [summarizerQuizSubmitted, setSummarizerQuizSubmitted] = useState<boolean>(false);
+
   const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -288,6 +353,104 @@ export default function App() {
       setIsLoading(false);
     }
   };
+
+  const handleStartInterview = async () => {
+    setInterviewLoading(true);
+    setInterviewGrading(null);
+    try {
+      const data = await api.startInterview(userId, interviewRole, interviewDifficulty);
+      setInterviewSessionId(data.session_id);
+      setInterviewMessages([{ role: "interviewer", content: data.initial_message }]);
+      setInterviewChallenge({
+        title: data.problem_title,
+        description: data.problem_description
+      });
+      setInterviewCode(data.code_template);
+      setInterviewStarted(true);
+      setInterviewTimer(2700);
+      setInterviewTimerActive(true);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to start mock interview");
+    } finally {
+      setInterviewLoading(false);
+    }
+  };
+
+  const handleSendInterviewMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userInterviewInput.trim()) return;
+    const userMsg = userInterviewInput.trim();
+    setUserInterviewInput("");
+    setInterviewMessages((prev) => [...prev, { role: "candidate", content: userMsg }]);
+    try {
+      const data = await api.sendInterviewMessage(interviewSessionId, userMsg, interviewCode);
+      setInterviewMessages((prev) => [...prev, { role: "interviewer", content: data.response }]);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send message to interviewer");
+    }
+  };
+
+  const handleEvaluateInterview = async () => {
+    if (!confirm("Are you sure you want to submit your solution for final evaluation?")) return;
+    setInterviewSubmitting(true);
+    setInterviewTimerActive(false);
+    try {
+      const data = await api.evaluateInterview(interviewSessionId, interviewCode);
+      setInterviewGrading(data);
+      setInterviewStarted(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to evaluate interview solution");
+    } finally {
+      setInterviewSubmitting(false);
+    }
+  };
+
+  const handleFindReferrals = async () => {
+    setReferralLoading(true);
+    try {
+      const data = await api.findReferrals(userId, referralCompany, referralRole);
+      setReferralContacts(data.contacts);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to find referral outreach contacts");
+    } finally {
+      setReferralLoading(false);
+    }
+  };
+
+  const handleSummarizeResource = async () => {
+    setSummarizerLoading(true);
+    setSummarizerData(null);
+    setSummarizerQuizAnswers({});
+    setSummarizerQuizSubmitted(false);
+    try {
+      const data = await api.summarizeResource(summarizerUrl);
+      setSummarizerData(data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to summarize target resource link");
+    } finally {
+      setSummarizerLoading(false);
+    }
+  };
+
+  // Timer Effect
+  useEffect(() => {
+    let interval: any = null;
+    if (interviewTimerActive && interviewTimer > 0) {
+      interval = setInterval(() => {
+        setInterviewTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (interviewTimer === 0 && interviewTimerActive) {
+      setInterviewTimerActive(false);
+      alert("Time's up for this mock interview challenge! Submitting your current code automatically.");
+      handleEvaluateInterview();
+    }
+    return () => clearInterval(interval);
+  }, [interviewTimerActive, interviewTimer]);
 
   const handleStartLesson = async (topicId: string) => {
     setSelectedTopic(topicId);
@@ -691,6 +854,32 @@ export default function App() {
                 <FileText className="h-4 w-4" />
                 Resume Engine
               </button>
+              <button
+                onClick={() => {
+                  setActiveTab("interview");
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  activeTab === "interview"
+                    ? "bg-zinc-800 text-white shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <Video className="h-4 w-4" />
+                Mock Interview
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("review");
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  activeTab === "review"
+                    ? "bg-zinc-800 text-white shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Review Board
+              </button>
             </nav>
           )}
 
@@ -1068,6 +1257,129 @@ export default function App() {
                             );
                           })}
                         </div>
+
+                        {/* AI STUDY GUIDE GENERATOR */}
+                        <div className="mt-8 pt-6 border-t border-zinc-900 space-y-4">
+                          <div>
+                            <span className="text-[10px] font-mono text-indigo-400 font-bold uppercase tracking-widest block">AI Study Guide Generator</span>
+                            <h4 className="text-sm font-extrabold text-white mt-1 font-sans">Summarize Tutorials & Videos</h4>
+                            <p className="text-zinc-500 text-xs leading-relaxed mt-1 font-sans">
+                              Paste any reference link (documentation, YouTube tutorials, articles) to generate clean summaries, flashcards, and quizzes dynamically.
+                            </p>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={summarizerUrl}
+                              onChange={(e) => setSummarizerUrl(e.target.value)}
+                              placeholder="Paste YouTube or article URL here..."
+                              className="flex-1 bg-zinc-950 border border-zinc-900 rounded-xl px-3.5 py-2.5 text-xs text-zinc-350 focus:outline-none focus:border-indigo-500 font-mono"
+                            />
+                            <button
+                              onClick={handleSummarizeResource}
+                              disabled={summarizerLoading || !summarizerUrl.trim()}
+                              className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-bold rounded-xl transition-all shadow-lg flex items-center gap-1.5"
+                            >
+                              {summarizerLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                              Generate
+                            </button>
+                          </div>
+
+                          {summarizerLoading && (
+                            <div className="p-6 border border-zinc-900 rounded-2xl bg-zinc-950/20 text-center flex flex-col items-center justify-center">
+                              <Loader2 className="h-6 w-6 text-indigo-500 animate-spin mb-2" />
+                              <span className="text-xs text-zinc-500 font-mono">Parsing resource context and creating quiz states...</span>
+                            </div>
+                          )}
+
+                          {summarizerData && !summarizerLoading && (
+                            <div className="bg-zinc-950/40 border border-zinc-900 p-5 rounded-2xl space-y-5 animate-fadeIn">
+                              {/* 5-Bullet Summary */}
+                              <div className="space-y-2">
+                                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block font-bold">Key Engineering Takeaways</span>
+                                <ul className="list-disc pl-4 space-y-1.5 text-xs text-zinc-300 leading-relaxed font-sans">
+                                  {summarizerData.summary.map((bullet: string, idx: number) => (
+                                    <li key={idx}>{bullet}</li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* Flashcards */}
+                              <div className="space-y-3 pt-2 border-t border-zinc-900/60">
+                                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block font-bold">Retention Flashcards</span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {summarizerData.flashcards.map((card: any, idx: number) => (
+                                    <div key={idx} className="p-3 bg-zinc-900/40 border border-zinc-900 rounded-xl text-xs space-y-1 font-sans">
+                                      <span className="font-extrabold text-white block">{card.front}</span>
+                                      <span className="text-zinc-400 block leading-relaxed">{card.back}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Quiz */}
+                              {summarizerData.quiz_questions && summarizerData.quiz_questions.length > 0 && (
+                                <div className="space-y-4 pt-3 border-t border-zinc-900/60">
+                                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block font-bold">Quick Retention Quiz</span>
+                                  {summarizerData.quiz_questions.map((q: any, qIdx: number) => {
+                                    const selected = summarizerQuizAnswers[qIdx];
+                                    const isCorrect = selected === q.correct_choice;
+                                    return (
+                                      <div key={qIdx} className="p-4 bg-zinc-950/60 border border-zinc-900 rounded-xl space-y-3">
+                                        <p className="text-xs font-bold text-white leading-relaxed font-sans">{q.question}</p>
+                                        <div className="grid grid-cols-1 gap-2">
+                                          {q.choices.map((choice: string) => {
+                                            const choiceKey = choice.split(":")[0].trim();
+                                            return (
+                                              <button
+                                                key={choice}
+                                                type="button"
+                                                onClick={() => {
+                                                  if (summarizerQuizSubmitted) return;
+                                                  setSummarizerQuizAnswers(prev => ({ ...prev, [qIdx]: choiceKey }));
+                                                }}
+                                                className={`text-left p-3 rounded-lg text-xs transition-all border font-sans ${
+                                                  selected === choiceKey
+                                                    ? "bg-indigo-500/10 border-indigo-500 text-white font-bold"
+                                                    : "bg-zinc-900/30 border-zinc-900 text-zinc-400 hover:border-zinc-800"
+                                                }`}
+                                              >
+                                                {choice}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+
+                                        {summarizerQuizSubmitted && (
+                                          <div className={`p-3 rounded-lg text-[11px] leading-relaxed border font-sans ${
+                                            isCorrect
+                                              ? "bg-emerald-950/20 border-emerald-900/30 text-emerald-400"
+                                              : "bg-red-950/20 border-red-900/40 text-red-400"
+                                          }`}>
+                                            <span className="font-bold block uppercase tracking-wider">
+                                              {isCorrect ? "✓ Correct!" : `✗ Incorrect (Correct Option: ${q.correct_choice})`}
+                                            </span>
+                                            <p className="mt-0.5">{q.explanation}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+
+                                  {!summarizerQuizSubmitted && (
+                                    <button
+                                      onClick={() => setSummarizerQuizSubmitted(true)}
+                                      className="w-full py-2.5 bg-zinc-850 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl transition-colors font-sans"
+                                    >
+                                      Submit Quiz Answers
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })()}
@@ -1082,29 +1394,37 @@ export default function App() {
                 {/* 1. LEFT PANE (MISSION, WHITEBOARD, CONCEPT GRAPH) - 4 COLS */}
                 <div className="lg:col-span-4 flex flex-col gap-6">
                   {/* Topic navigation list */}
-                  <div className="bg-zinc-900/20 border border-zinc-900 rounded-2xl p-4 space-y-2">
-                    <span className="text-xs uppercase font-mono text-zinc-500 tracking-wider">Lesson Syllabus</span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleStartLesson("functions")}
-                        className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-colors ${
-                          selectedTopic === "functions"
-                            ? "bg-indigo-500/10 border-indigo-500 text-white"
-                            : "bg-transparent border-zinc-900 text-zinc-400 hover:border-zinc-800"
-                        }`}
+                  <div className="bg-zinc-900/20 border border-zinc-900 rounded-2xl p-4 space-y-3">
+                    <div className="space-y-1">
+                      <span className="text-xs uppercase font-mono text-zinc-500 tracking-wider block">Select Course Track</span>
+                      <select
+                        value={activeTrack}
+                        onChange={(e) => {
+                          const track = e.target.value as "foundations" | "dsa";
+                          setActiveTrack(track);
+                          const firstLesson = track === "foundations" ? "variables" : "intro-to-algorithms";
+                          handleStartLesson(firstLesson);
+                        }}
+                        className="w-full bg-zinc-950 border border-zinc-850 rounded-lg px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500 transition-colors"
                       >
-                        Functions
-                      </button>
-                      <button
-                        onClick={() => handleStartLesson("loops")}
-                        className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-colors ${
-                          selectedTopic === "loops"
-                            ? "bg-indigo-500/10 border-indigo-500 text-white"
-                            : "bg-transparent border-zinc-900 text-zinc-400 hover:border-zinc-800"
-                        }`}
+                        <option value="foundations">🐍 Python Programming Foundations</option>
+                        <option value="dsa">🎓 Theoretical DSA (Skiena Series)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-xs uppercase font-mono text-zinc-500 tracking-wider block">Select Lesson Chapter</span>
+                      <select
+                        value={selectedTopic}
+                        onChange={(e) => handleStartLesson(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-850 rounded-lg px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500 transition-colors"
                       >
-                        Loops
-                      </button>
+                        {(activeTrack === "foundations" ? foundationsLessons : dsaLessons).map((lesson) => (
+                          <option key={lesson.id} value={lesson.id}>
+                            {lesson.title}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -1914,9 +2234,127 @@ export default function App() {
                     <Users className="h-4 w-4" />
                     Verify Job Fit (RecruitIQ Engine)
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setResumeTab("referral")}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                      resumeTab === "referral"
+                        ? "bg-zinc-800 text-white shadow-sm"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    <Users className="h-4 w-4" />
+                    Referral Outreach Finder
+                  </button>
                 </div>
 
-                {resumeTab === "analyze" ? (
+                {resumeTab === "referral" && (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Form column */}
+                    <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-5 h-fit">
+                      <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                          <Users className="h-5 w-5 text-indigo-400" />
+                          Referral Outreach Finder
+                        </h3>
+                        <p className="text-zinc-500 text-xs mt-1 leading-relaxed">
+                          Enter target company and engineering role. We will generate specific target profiles and highly personalized cold outreach messages.
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Target Company</label>
+                          <input
+                            type="text"
+                            value={referralCompany}
+                            onChange={(e) => setReferralCompany(e.target.value)}
+                            placeholder="e.g. Google, Stripe, Canva"
+                            className="w-full bg-zinc-950 border border-zinc-900 rounded-xl px-4 py-3 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 font-sans"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">Target SDE Role</label>
+                          <input
+                            type="text"
+                            value={referralRole}
+                            onChange={(e) => setReferralRole(e.target.value)}
+                            placeholder="e.g. Frontend Engineer, SDE-1"
+                            className="w-full bg-zinc-950 border border-zinc-900 rounded-xl px-4 py-3 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 font-sans"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleFindReferrals}
+                          disabled={referralLoading || !referralCompany.trim() || !referralRole.trim()}
+                          className="w-full py-3 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5"
+                        >
+                          {referralLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          Find Outreach Targets
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Output column */}
+                    <div className="lg:col-span-2">
+                      {referralLoading ? (
+                        <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 flex flex-col items-center justify-center min-h-[400px]">
+                          <Loader2 className="h-8 w-8 text-indigo-500 animate-spin mb-4" />
+                          <p className="text-zinc-555 text-sm font-mono font-bold">Career Engine: Searching professional networks...</p>
+                          <p className="text-xs text-zinc-650 mt-1 max-w-sm text-center leading-relaxed">Personalizing cold templates focusing on your Ast-Whiteboard and DrishtiAI repositories.</p>
+                        </div>
+                      ) : referralContacts.length > 0 ? (
+                        <div className="space-y-4 animate-fadeIn">
+                          <span className="text-xs uppercase font-mono text-zinc-500 block tracking-wider font-bold">Generated Outreach Targets</span>
+                          {referralContacts.map((contact: any, index: number) => (
+                            <div key={index} className="bg-zinc-900/20 border border-zinc-900 p-5 rounded-3xl space-y-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-extrabold text-white text-sm">{contact.name}</h4>
+                                  <span className="text-xs text-indigo-400 font-mono block mt-0.5">{contact.role}</span>
+                                </div>
+                                <span className="text-[10px] bg-zinc-950 border border-zinc-900 px-2 py-1 rounded-md text-zinc-500 font-mono">
+                                  TARGET MATCH
+                                </span>
+                              </div>
+
+                              <p className="text-xs text-zinc-400 leading-relaxed bg-zinc-950/40 p-3.5 border border-zinc-900 rounded-2xl">
+                                <strong>Targeting rationale:</strong> {contact.reason}
+                              </p>
+
+                              <div className="space-y-1.5">
+                                <span className="text-[10px] font-mono text-zinc-500 uppercase block tracking-wider font-bold">Cold Message Template</span>
+                                <div className="relative">
+                                  <pre className="text-xs text-zinc-350 leading-relaxed font-mono bg-zinc-950 border border-zinc-900 p-4 rounded-2xl overflow-x-auto whitespace-pre-wrap max-h-[220px]">
+                                    {contact.outreach_template}
+                                  </pre>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(contact.outreach_template);
+                                      alert("Copied outreach template to clipboard!");
+                                    }}
+                                    className="absolute top-3 right-3 p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg border border-zinc-850 transition-colors"
+                                    title="Copy Template"
+                                  >
+                                    <Copy className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 text-center text-zinc-500 flex flex-col items-center justify-center min-h-[400px]">
+                          <Users className="h-10 w-10 text-zinc-700 mb-3" />
+                          <p className="text-sm font-medium font-sans">Submit your target company name and role to search profiles.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {resumeTab === "analyze" && (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Form column */}
                     <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 space-y-5 h-fit">
@@ -2235,6 +2673,295 @@ export default function App() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* INTERACTIVE AI MOCK INTERVIEW SIMULATOR */}
+            {activeTab === "interview" && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch h-[calc(100vh-12rem)] min-h-[550px]">
+                {/* Left Panel: Chat Console (5 Cols) */}
+                <div className="lg:col-span-5 bg-zinc-900/30 border border-zinc-900 rounded-3xl p-5 flex flex-col h-full overflow-hidden">
+                  <div className="flex justify-between items-center pb-4 border-b border-zinc-900 shrink-0">
+                    <div>
+                      <h3 className="font-extrabold text-white text-base">FAANG Coding Interview</h3>
+                      <span className="text-[10px] text-zinc-500 font-mono block">AI INTERVIEWER ACTIVE</span>
+                    </div>
+                    {interviewStarted && (
+                      <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-amber-500 font-mono text-xs font-bold">
+                        <Clock className="h-3.5 w-3.5 animate-pulse" />
+                        {Math.floor(interviewTimer / 60)}:{(interviewTimer % 60).toString().padStart(2, "0")}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Chat message stream */}
+                  <div className="flex-1 overflow-y-auto py-4 space-y-4 my-2 pr-2 scrollbar-thin">
+                    {!interviewStarted && !interviewGrading && (
+                      <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-6">
+                        <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                          <Video className="h-7 w-7" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-white text-base">Select Interview Focus</h4>
+                          <p className="text-zinc-500 text-xs mt-1 max-w-xs mx-auto leading-relaxed">
+                            Simulate a real coding round. The interviewer will ask you to explain your solution and verify edge cases.
+                          </p>
+                        </div>
+                        <div className="w-full space-y-3 max-w-xs">
+                          <div className="space-y-1 text-left">
+                            <span className="text-[10px] font-mono uppercase text-zinc-500 font-bold block">Role Focus</span>
+                            <select
+                              value={interviewRole}
+                              onChange={(e) => setInterviewRole(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                            >
+                              <option value="frontend">Frontend Engineer (JS/TS)</option>
+                              <option value="backend">Backend Engineer (Python)</option>
+                              <option value="fullstack">Full-Stack Engineer (LRU/Structures)</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1 text-left">
+                            <span className="text-[10px] font-mono uppercase text-zinc-500 font-bold block">Difficulty</span>
+                            <select
+                              value={interviewDifficulty}
+                              onChange={(e) => setInterviewDifficulty(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                            >
+                              <option value="beginner">Junior L3 (Familiar patterns)</option>
+                              <option value="intermediate">Mid-Level L4 (Standard challenges)</option>
+                              <option value="advanced">Senior L5 (System + algorithmic edge cases)</option>
+                            </select>
+                          </div>
+                          <button
+                            onClick={handleStartInterview}
+                            disabled={interviewLoading}
+                            className="w-full py-3 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/20"
+                          >
+                            {interviewLoading ? "Spinning Interview Session..." : "Start Mock Interview"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {interviewGrading && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-indigo-950/20 border border-indigo-900/40 rounded-2xl">
+                          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Assessment Grade Card</span>
+                          <h4 className="text-3xl font-black text-indigo-400 mt-1">{interviewGrading.overall_score}%</h4>
+                          <p className="text-xs text-zinc-350 leading-relaxed mt-2">{interviewGrading.summary}</p>
+                          <button
+                            onClick={() => { setInterviewGrading(null); setInterviewStarted(false); }}
+                            className="mt-4 w-full py-2.5 bg-zinc-850 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl transition-colors"
+                          >
+                            Solve Another Problem
+                          </button>
+                        </div>
+
+                        {/* Grading Rubrics breakdown */}
+                        <div className="space-y-2">
+                          {[
+                            { name: "Problem Clarification", desc: interviewGrading.rubrics.clarification },
+                            { name: "Brute Force Strategy", desc: interviewGrading.rubrics.brute_force },
+                            { name: "Optimization Bounds", desc: interviewGrading.rubrics.optimization },
+                            { name: "Complexity Analysis", desc: interviewGrading.rubrics.complexity },
+                            { name: "Code Cleanliness", desc: interviewGrading.rubrics.code_quality },
+                            { name: "Edge Case Coverage", desc: interviewGrading.rubrics.edge_cases }
+                          ].map((rub, i) => (
+                            <div key={i} className="p-3 bg-zinc-950/40 border border-zinc-900 rounded-xl space-y-1">
+                              <span className="text-xs font-bold text-white block">{rub.name}</span>
+                              <p className="text-[11px] text-zinc-400 leading-relaxed">{rub.desc}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(interviewStarted || (interviewMessages.length > 0 && !interviewGrading)) && (
+                      <div className="space-y-3.5 font-sans">
+                        {interviewMessages.map((msg, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex flex-col max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${
+                              msg.role === "interviewer"
+                                ? "bg-zinc-900 border border-zinc-850 text-zinc-200 mr-auto rounded-tl-none"
+                                : "bg-indigo-500/10 border border-indigo-500/20 text-indigo-200 ml-auto rounded-tr-none"
+                            }`}
+                          >
+                            <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block mb-1 font-bold">
+                              {msg.role === "interviewer" ? "AI Interviewer" : "You (Candidate)"}
+                            </span>
+                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Send chat block */}
+                  {interviewStarted && (
+                    <form onSubmit={handleSendInterviewMessage} className="flex gap-2 pt-3 border-t border-zinc-900 shrink-0">
+                      <input
+                        type="text"
+                        value={userInterviewInput}
+                        onChange={(e) => setUserInterviewInput(e.target.value)}
+                        placeholder="Say something to the interviewer (e.g. 'Is input sorted?')"
+                        className="flex-1 bg-zinc-950 border border-zinc-900 rounded-xl px-4 py-3 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 font-sans"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-colors"
+                      >
+                        Send
+                      </button>
+                    </form>
+                  )}
+                </div>
+
+                {/* Right Panel: Sandbox IDE split (7 Cols) */}
+                <div className="lg:col-span-7 flex flex-col gap-5 h-full overflow-hidden">
+                  {interviewStarted && interviewChallenge ? (
+                    <div className="flex-1 flex flex-col gap-4 min-h-0">
+                      {/* Challenge statement */}
+                      <div className="bg-zinc-900/20 border border-zinc-900 rounded-2xl p-4 shrink-0">
+                        <span className="text-[9px] font-mono text-indigo-400 font-bold block uppercase tracking-widest">Active Coding Target</span>
+                        <h4 className="font-extrabold text-white text-sm mt-0.5">{interviewChallenge.title}</h4>
+                        <p className="text-xs text-zinc-400 leading-relaxed mt-1.5">{interviewChallenge.description}</p>
+                      </div>
+
+                      {/* Code editor */}
+                      <div className="flex-1 bg-zinc-900/30 border border-zinc-900 rounded-3xl p-5 flex flex-col gap-2 min-h-0">
+                        <div className="flex justify-between items-center shrink-0">
+                          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Sandbox IDE Workspace</span>
+                          <button
+                            onClick={handleEvaluateInterview}
+                            disabled={interviewSubmitting}
+                            className="px-3.5 py-1.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1"
+                          >
+                            {interviewSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                            Submit Solution
+                          </button>
+                        </div>
+                        <textarea
+                          value={interviewCode}
+                          onChange={(e) => setInterviewCode(e.target.value)}
+                          className="w-full flex-1 bg-zinc-950 border border-zinc-900 rounded-xl p-4 text-xs font-mono text-zinc-300 placeholder-zinc-750 focus:outline-none focus:border-indigo-500 transition-colors resize-none min-h-0"
+                          style={{ tabSize: 4 }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 bg-zinc-900/30 border border-zinc-900 rounded-3xl p-16 text-center text-zinc-650 flex flex-col items-center justify-center">
+                      <Code className="h-12 w-12 text-zinc-700 mb-3" />
+                      <p className="text-sm font-medium font-sans">Select a role and start the simulation. The code sandbox editor will configure dynamically.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* LEITNER SYSTEM SPACED REPETITION REVIEW BOARD */}
+            {activeTab === "review" && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {/* Left Side: Spaced repetition details (4 Cols) */}
+                <div className="lg:col-span-4 bg-zinc-900/30 border border-zinc-900 rounded-3xl p-5 space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2 font-sans">
+                      <RefreshCw className="h-5 w-5 text-indigo-400" />
+                      Review Board (Leitner System)
+                    </h3>
+                    <p className="text-zinc-500 text-xs mt-1 leading-relaxed font-sans">
+                      Optimize your memory retention. Concepts are filtered into five bins based on Spaced Repetition algorithms. Reviews are triggered when cards mature.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-indigo-955/20 border border-indigo-900/40 rounded-xl font-sans">
+                    <span className="text-[10px] font-mono text-indigo-300 block font-bold uppercase tracking-wider">Leitner Streaks</span>
+                    <div className="text-2xl font-black text-white mt-1">5 Completed</div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed mt-1">Reviewing cards consistently prevents the forgetting curve limit.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase block tracking-wider font-bold">Review Pipeline Status</span>
+                    {filteredReviewQueue.length > 0 ? (
+                      <div className="space-y-2">
+                        {filteredReviewQueue.map((item) => (
+                          <div key={item.topic_id} className="p-3 bg-zinc-950/40 border border-zinc-900 rounded-xl flex items-center justify-between gap-3 text-xs font-sans">
+                            <div>
+                              <span className="font-bold text-white block">{item.title}</span>
+                              <span className="text-[10px] text-zinc-500 block mt-0.5">{item.reason}</span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                handleStartLesson(item.topic_id);
+                              }}
+                              className="px-2.5 py-1.5 bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500 text-indigo-300 hover:text-white rounded-lg font-bold text-[10px] transition-colors shrink-0"
+                            >
+                              Review
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 border border-zinc-900 rounded-xl text-center text-xs text-zinc-550 font-sans">
+                        All clear! You have no concepts due for spacing reviews today.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Side: Interactive active concept card (8 Cols) */}
+                <div className="lg:col-span-8 bg-zinc-900/30 border border-zinc-900 rounded-3xl p-6 min-h-[400px] flex flex-col justify-between">
+                  {lessonDefinition ? (
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start pb-4 border-b border-zinc-900">
+                          <div>
+                            <span className="text-[10px] font-mono text-indigo-400 font-bold uppercase tracking-wider">Active Leitner Concept</span>
+                            <h4 className="text-xl font-extrabold text-white mt-1 font-sans">{lessonDefinition.lesson.title}</h4>
+                          </div>
+                          <span className="text-xs bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 rounded-full text-indigo-300 font-bold font-mono">
+                            MATURE
+                          </span>
+                        </div>
+
+                        {/* Flashcards stack */}
+                        <div className="py-6 space-y-4">
+                          <span className="text-xs font-mono text-zinc-500 uppercase block tracking-wider font-bold">Mastery Flashcards</span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {(lessonDefinition.states.find((s: any) => s.type === "mastery")?.flashcards || []).map((card: any, idx: number) => (
+                              <div key={idx} className="bg-zinc-955/60 border border-zinc-900 p-4 rounded-2xl flex flex-col justify-between min-h-[140px] hover:border-zinc-800 transition-colors font-sans">
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-mono text-zinc-650 uppercase block font-bold">Question</span>
+                                  <p className="text-xs text-white font-bold leading-relaxed">{card.front}</p>
+                                </div>
+                                <div className="mt-4 pt-2 border-t border-zinc-900 space-y-1">
+                                  <span className="text-[10px] font-mono text-indigo-400 uppercase block font-bold">Answer</span>
+                                  <p className="text-[11px] text-zinc-400 leading-relaxed">{card.back}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={downloadFlashcards}
+                        className="w-full mt-6 py-3 bg-zinc-850 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-2 font-sans"
+                      >
+                        <FileDown className="h-4 w-4" />
+                        Download Flashcards Deck (.md)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-full flex-1 flex flex-col items-center justify-center text-center p-12 space-y-4">
+                      <RefreshCw className="h-10 w-10 text-zinc-700 animate-spin" />
+                      <div>
+                        <h4 className="font-bold text-white text-base font-sans">Select Lesson in Academy to review flashcards</h4>
+                        <p className="text-zinc-500 text-xs mt-1 font-sans">Once you load a lesson in the classroom tab, its revision cards will sync here.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -23,11 +23,12 @@ async def root():
         "message": "Welcome to the CodeMate API. The Self-Taught Builder's Path to Getting Hired."
     }
 
-from app.routers import roadmap, teaching, resume
+from app.routers import roadmap, teaching, resume, interview
 
 app.include_router(roadmap.router, prefix="/api/roadmap", tags=["roadmap"])
 app.include_router(teaching.router, prefix="/api/teaching", tags=["teaching"])
 app.include_router(resume.router, prefix="/api/resume", tags=["resume"])
+app.include_router(interview.router, prefix="/api/interview", tags=["interview"])
 
 
 

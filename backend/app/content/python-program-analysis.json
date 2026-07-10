@@ -1,0 +1,131 @@
+{
+  "lesson": {
+    "id": "program-analysis",
+    "title": "Program Analysis",
+    "interview_coverage": {
+      "topic": "Program Analysis",
+      "stars": 4,
+      "companies": [
+        "Uber",
+        "Google",
+        "Databricks"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Analyze loops and nested loops",
+        "Perform summation analyses",
+        "Evaluate space complexity overheads",
+        "Calculate average and worst-case bounds"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the time complexity of two consecutive (non-nested) loops of size N?",
+      "choices": [
+        "A: O(N^2)",
+        "B: O(N)",
+        "C: O(2N)"
+      ],
+      "correct_choice": "B",
+      "explanation": "Consecutive loops run sequentially: N + N = 2N, which asymptotically simplifies to O(N)."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Assembly Line",
+      "analogy_description": "If you have two stations where station A processes parts, and then station B processes them, the time is additive. But if for every item at station A, B must inspect every other item, it becomes multiplicative (nested)."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Nested Loop Index Iterations",
+        "description": "Inner loop execution loops completely for each outer loop step.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "outer(i=0)",
+            "details": "Outer loop step 0"
+          },
+          {
+            "action": "push",
+            "frame": "inner(j=0)",
+            "details": "Inner step 0"
+          },
+          {
+            "action": "push",
+            "frame": "inner(j=1)",
+            "details": "Inner step 1"
+          },
+          {
+            "action": "pop",
+            "frame": "inner()",
+            "details": "Inner complete for i=0"
+          },
+          {
+            "action": "pop",
+            "frame": "outer()",
+            "details": "Outer complete"
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Write a function `sum_n(n)` that returns the sum of all integers from 1 to `n` using a single loop (Demonstrates O(N) time).",
+      "code_template": "def sum_n(n):\n    # Write O(N) loop\n    pass",
+      "test_cases": [
+        {
+          "input": "5",
+          "expected": "15"
+        },
+        {
+          "input": "10",
+          "expected": "55"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `count_pairs(n)` that calculates how many pairs (i, j) exist such that 0 <= i < j < n. Use nested loops (Demonstrates O(N^2) time).",
+      "code_template": "def count_pairs(n):\n    # Write nested loops\n    pass",
+      "test_cases": [
+        {
+          "input": "3",
+          "expected": "3"
+        },
+        {
+          "input": "5",
+          "expected": "10"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Program Analysis in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Program Analysis",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What does auxiliary space complexity mean?",
+          "back": "The extra memory allocated by the algorithm, excluding the inputs."
+        },
+        {
+          "front": "What is the worst-case space complexity of recursion?",
+          "back": "O(D), where D is the maximum recursion depth (due to call stack frames)."
+        }
+      ]
+    }
+  ]
+}

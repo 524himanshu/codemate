@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "graph-data-structures",
+    "title": "Graph Data Structures",
+    "interview_coverage": {
+      "topic": "Graph Data Structures",
+      "stars": 4,
+      "companies": [
+        "Facebook",
+        "LinkedIn",
+        "TCS"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Represent graphs via Adjacency Lists and Matrices",
+        "Differentiate Directed and Undirected graphs",
+        "Compute vertex degree properties",
+        "Assess graph storage space complexities"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "Which graph representation is most space-efficient for sparse graphs?",
+      "choices": [
+        "A: Adjacency Matrix",
+        "B: Adjacency List",
+        "C: Incidence Matrix"
+      ],
+      "correct_choice": "B",
+      "explanation": "Adjacency lists use O(V + E) space. For sparse graphs where E << V^2, this is much more efficient than the O(V^2) matrix space."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Social Network Friend List",
+      "analogy_description": "An adjacency list is like having a contacts card index where every person has a list of names they follow. An adjacency matrix is a giant grid of yes/no checkmarks for every person pair."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Adjacency List Structure",
+        "description": "Mapping vertices to list of adjacent vertices.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "vertex(0 -> [1, 2])",
+            "details": "Vertex 0 connects to 1 and 2"
+          },
+          {
+            "action": "push",
+            "frame": "vertex(1 -> [0])",
+            "details": "Vertex 1 connects back to 0"
+          },
+          {
+            "action": "pop",
+            "frame": "vertex()",
+            "details": "Graph structure loaded"
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "Represent an undirected graph by adjacency list. Write a function `add_edge(adj_list, u, v)` that appends `v` to `u`'s list, and `u` to `v`'s list.",
+      "code_template": "def add_edge(adj_list, u, v):\n    # Add edge link\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [], 1: []}, 0, 1",
+          "expected": "{0: [1], 1: [0]}"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Write a function `get_degree(adj_list, u)` that returns the degree (number of connected edges) of vertex `u` in an adjacency list graph.",
+      "code_template": "def get_degree(adj_list, u):\n    # Return vertex degree\n    pass",
+      "test_cases": [
+        {
+          "input": "{0: [1, 2], 1: [0], 2: [0]}, 0",
+          "expected": "2"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Graph Data Structures in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Graph Data Structures",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is a self-loop in a graph?",
+          "back": "An edge that connects a vertex to itself."
+        },
+        {
+          "front": "What is the handshaking lemma?",
+          "back": "The sum of degrees of all vertices in a graph equals twice the number of edges."
+        }
+      ]
+    }
+  ]
+}

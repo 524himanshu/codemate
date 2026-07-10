@@ -1,0 +1,113 @@
+{
+  "lesson": {
+    "id": "minimum-spanning-trees-i",
+    "title": "Minimum Spanning Trees I",
+    "interview_coverage": {
+      "topic": "Minimum Spanning Trees I",
+      "stars": 4,
+      "companies": [
+        "Google",
+        "Facebook",
+        "Microsoft"
+      ]
+    }
+  },
+  "states": [
+    {
+      "type": "mission",
+      "estimated_minutes": 20,
+      "checklist": [
+        "Define Spanning Trees and MST properties",
+        "Implement Kruskal's greedy MST algorithm",
+        "Sort edges minimally to avoid loops",
+        "Manage disjoint sets using Union-Find"
+      ]
+    },
+    {
+      "type": "predict",
+      "question": "What is the time complexity of Kruskal's algorithm on a graph with V vertices and E edges?",
+      "choices": [
+        "A: O(V^2)",
+        "B: O(E log E)",
+        "C: O(E log V)"
+      ],
+      "correct_choice": "B",
+      "explanation": "Kruskal's sorts all E edges, taking O(E log E) time. Disjoint set union-find checks take near-constant time, making sorting the bottleneck."
+    },
+    {
+      "type": "discover",
+      "analogy_title": "Connecting Cabins",
+      "analogy_description": "Imagine connecting N mountain cabins with telephone lines. To minimize total wire cost, you sort all paths by distance and pave the shortest wire that does not link cabins already connected."
+    },
+    {
+      "type": "visualize",
+      "renderer": "stack",
+      "whiteboard_data": {
+        "title": "Kruskal Cycle Check",
+        "description": "Skip edges linking vertices already in the same subset.",
+        "steps": [
+          {
+            "action": "push",
+            "frame": "check(edge=0-1, cost=2)",
+            "details": "Vertices 0 and 1 in different sets. Add edge."
+          },
+          {
+            "action": "push",
+            "frame": "check(edge=0-2, cost=5)",
+            "details": "0 and 2 in different sets. Add edge."
+          },
+          {
+            "action": "pop",
+            "frame": "check()",
+            "details": "MST constructed."
+          }
+        ]
+      }
+    },
+    {
+      "type": "build",
+      "exercise_description": "We represent edges as tuples `(weight, u, v)`. Write a function `sort_edges(edges)` that sorts edges by weight ascending.",
+      "code_template": "def sort_edges(edges):\n    # Sort edge tuples\n    pass",
+      "test_cases": [
+        {
+          "input": "[(5, 0, 1), (2, 1, 2), (8, 0, 2)]",
+          "expected": "[(2, 1, 2), (5, 0, 1), (8, 0, 2)]"
+        }
+      ]
+    },
+    {
+      "type": "challenge",
+      "exercise_description": "Implement a simple Kruskal-style MST cost calculator `kruskal_mst_cost(vertices, edges)` where `edges` are sorted. Use a simple list/dict-based union-find.",
+      "code_template": "def kruskal_mst_cost(vertices, edges):\n    # Return MST total weight\n    pass",
+      "test_cases": [
+        {
+          "input": "3, [(2, 0, 1), (3, 1, 2), (6, 0, 2)]",
+          "expected": "5"
+        }
+      ]
+    },
+    {
+      "type": "teach_back",
+      "prompt": "Explain Minimum Spanning Trees I in your own words to a peer. Use an analogy from daily life."
+    },
+    {
+      "type": "mastery",
+      "concept_updates": [
+        {
+          "concept": "Minimum Spanning Trees I",
+          "increment": 25
+        }
+      ],
+      "flashcards": [
+        {
+          "front": "What is the Union-Find path compression optimization?",
+          "back": "Pointing visited nodes directly to the root parent node during Find checks."
+        },
+        {
+          "front": "How many edges are in a spanning tree of V vertices?",
+          "back": "Exactly V - 1 edges."
+        }
+      ]
+    }
+  ]
+}
