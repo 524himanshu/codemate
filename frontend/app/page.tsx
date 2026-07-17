@@ -1547,35 +1547,36 @@ export default function App() {
                       </div>
 
                       {/* Visual Whiteboard Panel */}
-                      <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl flex-1 flex flex-col justify-between">
+                      <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800/50 p-5 rounded-2xl flex-1 flex flex-col justify-between shadow-2xl shadow-indigo-950/10">
                         <div>
                           <div className="flex items-center gap-2 mb-3">
-                            <Code className="h-4 w-4 text-indigo-400" />
+                            <Code className="h-4 w-4 text-cyan-400 animate-pulse" />
                             <span className="text-xs font-bold uppercase tracking-wider font-mono text-zinc-400">AI Whiteboard (Deterministic Replay)</span>
                           </div>
 
                           {traceHistory.length > 0 ? (
                             <div className="space-y-4">
-                              <div className="p-3 bg-zinc-950/60 border border-zinc-900 rounded-lg text-xs space-y-1">
-                                <span className="font-semibold text-indigo-300 block">{lessonDefinition.states.find((s: any) => s.type === "visualize")?.whiteboard_data.title}</span>
+                              <div className="p-3 bg-zinc-950/60 border border-zinc-800/40 rounded-lg text-xs space-y-1">
+                                <span className="font-semibold text-cyan-300 block">{lessonDefinition.states.find((s: any) => s.type === "visualize")?.whiteboard_data.title}</span>
                                 <p className="text-zinc-500 leading-relaxed">{lessonDefinition.states.find((s: any) => s.type === "visualize")?.whiteboard_data.description}</p>
                               </div>
 
                               {/* Animation Frame view */}
-                              <div className="bg-zinc-950 border border-zinc-900 rounded-xl p-4 min-h-[160px] flex flex-col justify-center items-center relative overflow-hidden font-mono">
+                              <div className="bg-zinc-950/80 backdrop-blur-lg border border-zinc-800/30 rounded-xl p-4 min-h-[185px] flex flex-col justify-center items-center relative overflow-hidden font-mono shadow-inner shadow-black/40">
                                 {traceHistory.map((frame, idx) => {
                                   if (frame.event === "call" && idx <= traceIndex) {
-                                    const offset = (frame.depth - 1) * 8;
+                                    const offset = (frame.depth - 1) * 10;
                                     return (
                                       <div 
                                         key={idx}
                                         style={{ transform: `translateY(-${offset}px)` }}
-                                        className={`w-[80%] py-2.5 px-3 border text-center rounded-lg text-xs transition-all duration-300 absolute ${
+                                        className={`w-[85%] py-2.5 px-3 border text-center rounded-lg text-xs transition-all duration-300 absolute ${
                                           idx === traceIndex
-                                            ? "border-indigo-500 bg-indigo-500/10 text-white font-bold shadow-lg shadow-indigo-500/5 scale-105 z-10"
-                                            : "border-zinc-800 bg-zinc-900/40 text-zinc-500 scale-95 opacity-60"
+                                            ? "border-cyan-500/80 bg-gradient-to-r from-cyan-950/40 to-indigo-950/40 text-cyan-200 font-bold shadow-[0_0_15px_rgba(6,182,212,0.15)] scale-105 z-10 backdrop-blur-sm"
+                                            : "border-zinc-800/40 bg-zinc-900/20 text-zinc-600 scale-95 opacity-30"
                                         }`}
                                       >
+                                        <span className="text-[10px] text-cyan-500/70 mr-1.5 font-bold">f({frame.depth})</span>
                                         {frame.function}({Object.entries(frame.args).map(([k, v]) => `${k}=${v}`).join(", ")})
                                       </div>
                                     );
@@ -1585,14 +1586,14 @@ export default function App() {
                               </div>
 
                               {/* Details below framework */}
-                              <div className="p-3 bg-zinc-950/20 border border-zinc-900 rounded-lg text-xs leading-relaxed text-zinc-400 min-h-[50px] flex items-center">
+                              <div className="p-3 bg-zinc-950/40 border border-zinc-800/40 rounded-lg text-xs leading-relaxed text-zinc-400 min-h-[55px] flex items-center">
                                 {traceHistory[traceIndex]?.event === "call" ? (
                                   <>
                                     <span>👉 Called function <strong className="text-white">{traceHistory[traceIndex].function}</strong> at line {traceHistory[traceIndex].line}</span>
                                   </>
                                 ) : (
                                   <>
-                                    <span>🎉 Returned value: <strong className="text-emerald-400">{traceHistory[traceIndex]?.returnValue}</strong></span>
+                                    <span>🎉 Returned value: <strong className="text-cyan-400 font-bold drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]">{traceHistory[traceIndex]?.returnValue}</strong></span>
                                   </>
                                 )}
                               </div>

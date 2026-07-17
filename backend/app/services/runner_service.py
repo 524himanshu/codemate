@@ -486,6 +486,34 @@ class ExecutionEngine:
         }
 
     def run_code(self, language: str, code: str, test_cases: List[Dict[str, Any]]) -> Dict[str, Any]:
+        # Centralized Sandbox Security Guardrail
+        code_lower = code.lower()
+        forbidden_patterns = [
+            # Python forbidden imports/calls
+            r"\bimport\s+(os|sys|subprocess|shutil|pty|socket|urllib|requests|http|ctypes)\b",
+            r"\bfrom\s+(os|sys|subprocess|shutil|pty|socket|urllib|requests|http|ctypes)\s+import\b",
+            r"\b(open|eval|exec|compile|__import__|getattr|globals|locals)\b",
+            # JavaScript forbidden imports/calls
+            r"\b(require|import)\s*\(",
+            r"\b(child_process|fs|path|process|global|require\s*\(['\"].*['\"]\))\b",
+            # Java/C++ execution/filesystem threats
+            r"\b(processbuilder|runtime\.getruntime|system\s*\(|popen|fstream|filesystem)\b",
+            r"\b(#include\s*<fstream>|#include\s*<filesystem>)\b",
+        ]
+        
+        for pattern in forbidden_patterns:
+            if re.search(pattern, code_lower):
+                return {
+                    "stdout": "",
+                    "stderr": "Security Exception: Execution blocked. Code contains forbidden system-level modules or dangerous file/process operations.",
+                    "passed_all": False,
+                    "test_results": [],
+                    "runtime_ms": 0.0,
+                    "memory_mb": 0.0,
+                    "trace": [],
+                    "error_explanation": "Security Violation: Blocked access to system calls, imports, or file operations."
+                }
+
         runner = self._runners.get(language.lower())
         if not runner:
             raise ValueError(f"No runner registered for language: {language}")
