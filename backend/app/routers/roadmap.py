@@ -1,5 +1,7 @@
 import json
 import logging
+import re
+import httpx
 from typing import List, Dict, Any
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Path
@@ -218,15 +220,80 @@ async def summarize_resource(request: SummarizeRequest):
     if gemini_service.is_mock():
         return mock_summary
         
-    prompt = f"""
-    Analyze and summarize the technical document or video at URL: '{request.url}'.
-    Provide:
-    1. A 5-bullet summary detailing the most critical engineering takeaways.
-    2. 2 flashcards (front/back questions) representing core formulas or constraints.
-    3. 3 multiple-choice quiz questions (with question text, choices array, correct_choice, and explanation).
-    
-    Ensure you output valid JSON matching the schema.
-    """
+    url = request.url
+    page_content = ""
+    is_youtube = "youtube.com" in url or "youtu.be" in url
+    youtube_title = ""
+
+    if is_youtube:
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept-Language": "en-US,en;q=0.9"
+            }
+            # Use httpx to scrape the video page to extract title
+            with httpx.Client(headers=headers, follow_redirects=True, timeout=8.0) as client:
+                res = client.get(url)
+                if res.status_code == 200:
+                    og_match = re.search(r'<meta\s+property="og:title"\s+content="(.*?)"', res.text, re.IGNORECASE)
+                    if og_match:
+                        youtube_title = og_match.group(1).strip()
+                    else:
+                        title_match = re.search(r'<title\b[^>]*>(.*?)</title>', res.text, re.IGNORECASE | re.DOTALL)
+                        if title_match:
+                            youtube_title = title_match.group(1).replace("- YouTube", "").strip()
+        except Exception as e:
+            logger.error(f"Failed to scrape YouTube metadata: {e}")
+    else:
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            with httpx.Client(headers=headers, follow_redirects=True, timeout=8.0) as client:
+                res = client.get(url)
+                if res.status_code == 200:
+                    cleaned = re.sub(r'<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>', ' ', res.text, flags=re.I)
+                    cleaned = re.sub(r'<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>', ' ', cleaned, flags=re.I)
+                    cleaned = re.sub(r'<[^>]+>', ' ', cleaned)
+                    page_content = re.sub(r'\s+', ' ', cleaned).strip()[:6000]
+        except Exception as e:
+            logger.error(f"Failed to scrape webpage {url}: {e}")
+
+    if is_youtube:
+        prompt = f"""
+        The user wants to generate a study guide for this YouTube URL: '{url}'.
+        """
+        if youtube_title:
+            prompt += f"\nHere is the fetched video title from the page: \"{youtube_title}\"\n"
+            
+        prompt += """
+        Since direct web scraping requests to YouTube transcripts often fail due to cookie consent blocks, please use the title provided above and your internal pre-trained knowledge base to identify this specific content:
+        1. If you recognize this playlist/video (such as Abdul Bari's Algorithms playlist) from the title and URL, base the summary, flashcards, and quizzes directly on its actual contents.
+        2. If you do not recognize this specific link, generate a comprehensive study guide about the computer science subject represented by the video title.
+        
+        Provide:
+        1. A 5-bullet summary detailing the most critical engineering takeaways of the topic.
+        2. 2 text-based flashcards (front/back questions) representing core formulas or constraints.
+        3. 3 multiple-choice quiz questions (with question text, choices array, correct_choice, and explanation).
+        
+        Ensure you output valid JSON matching the schema.
+        """
+    else:
+        prompt = f"""
+        Analyze and summarize the technical document at URL: '{url}'.
+        
+        Here is the scraped content of the page:
+        \"\"\"
+        {page_content}
+        \"\"\"
+        
+        Provide:
+        1. A 5-bullet summary detailing the most critical engineering takeaways from the page content.
+        2. 2 text-based flashcards (front/back questions) representing core formulas or constraints.
+        3. 3 multiple-choice quiz questions (with question text, choices array, correct_choice, and explanation).
+        
+        Ensure you output valid JSON matching the schema.
+        """
     
     system_instruction = (
         "You are an expert study assistant. "

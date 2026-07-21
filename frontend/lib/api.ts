@@ -262,4 +262,46 @@ export const api = {
     if (!res.ok) throw new Error("Failed to summarize target resource link");
     return res.json();
   },
+
+  async getEli5(topicId: string): Promise<{ title: string; analogy: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/teaching/eli5/${topicId}`);
+    if (!res.ok) throw new Error("Failed to get ELI5 analogy");
+    return res.json();
+  },
+
+  async getSparkChallenge(): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/teaching/spark-challenge`);
+    if (!res.ok) throw new Error("Failed to get Spark challenge");
+    return res.json();
+  },
+
+  async executeSpark(challengeId: string, code: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/teaching/execute-spark`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        challenge_id: challengeId,
+        code: code
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to execute Spark challenge");
+    return res.json();
+  },
+
+  async explainErrorAnalogy(errorMessage: string, codeContext: string): Promise<{ analogy: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/teaching/explain-error-analogy`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error_message: errorMessage,
+        code_context: codeContext
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to generate error analogy");
+    return res.json();
+  },
 };

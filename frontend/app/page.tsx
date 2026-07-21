@@ -149,6 +149,20 @@ export default function App() {
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [lessonLoading, setLessonLoading] = useState<boolean>(false);
 
+  // Anti-Procrastination & ELI5 States
+  const [isEli5Mode, setIsEli5Mode] = useState<boolean>(false);
+  const [procrastinationCoins, setProcrastinationCoins] = useState<number>(3); // Skipped days
+  const [sparkActive, setSparkActive] = useState<boolean>(false);
+  const [sparkChallenge, setSparkChallenge] = useState<any>(null);
+  const [sparkCode, setSparkCode] = useState<string>("");
+  const [sparkSubmitting, setSparkSubmitting] = useState<boolean>(false);
+  const [sparkResult, setSparkResult] = useState<any>(null);
+  const [errorAnalogy, setErrorAnalogy] = useState<string | null>(null);
+  const [errorAnalogyLoading, setErrorAnalogyLoading] = useState<boolean>(false);
+  const [isComplexitySidebarOpen, setIsComplexitySidebarOpen] = useState<boolean>(false);
+  const [eli5Data, setEli5Data] = useState<{ title: string; analogy: string } | null>(null);
+  const [eli5Loading, setEli5Loading] = useState<boolean>(false);
+
   // Prediction State
   const [selectedChoice, setSelectedChoice] = useState<string>("");
   const [predictionSubmitted, setPredictionSubmitted] = useState<boolean>(false);
@@ -480,11 +494,71 @@ export default function App() {
       if (buildState) {
         setEditorCode(buildState.code_template);
       }
+
+      // Fetch ELI5 Analogy in background
+      setEli5Loading(true);
+      setErrorAnalogy(null);
+      try {
+        const eli5Res = await api.getEli5(topicId);
+        setEli5Data(eli5Res);
+      } catch (e) {
+        console.error("Failed to load ELI5 analogy in background:", e);
+      } finally {
+        setEli5Loading(false);
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to load lesson definition.");
     } finally {
       setLessonLoading(false);
+    }
+  };
+
+  const handleLaunchSpark = async () => {
+    setSparkActive(true);
+    setSparkResult(null);
+    try {
+      const challenge = await api.getSparkChallenge();
+      setSparkChallenge(challenge);
+      setSparkCode(challenge.code_template);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to load Spark challenge");
+    }
+  };
+
+  const handleExecuteSpark = async () => {
+    if (!sparkChallenge) return;
+    setSparkSubmitting(true);
+    setSparkResult(null);
+    try {
+      const res = await api.executeSpark(sparkChallenge.id, sparkCode);
+      setSparkResult(res);
+      if (res.passed) {
+        setProcrastinationCoins(0); // empty the jar!
+      }
+    } catch (e) {
+      console.error(e);
+      setSparkResult({
+        passed: false,
+        stderr: "Failed to execute code inside sandbox."
+      });
+    } finally {
+      setSparkSubmitting(false);
+    }
+  };
+
+  const handleExplainErrorAnalogy = async (stderr: string, code: string) => {
+    setErrorAnalogyLoading(true);
+    setErrorAnalogy(null);
+    try {
+      const res = await api.explainErrorAnalogy(stderr, code);
+      setErrorAnalogy(res.analogy);
+    } catch (e) {
+      console.error(e);
+      setErrorAnalogy("This error is like a box that doesn't exist on the shelf. You are requesting index access beyond the boundary. Check your loop stop condition!");
+    } finally {
+      setErrorAnalogyLoading(false);
     }
   };
 
@@ -1167,6 +1241,78 @@ export default function App() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Side: Milestones list */}
                 <div className="space-y-4">
+                  {/* Procrastination Jar Card */}
+                  <div className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-2xl flex items-center justify-between shadow-2xl relative overflow-hidden">
+                    <div className="space-y-1.5">
+                      <span className="text-xs font-mono text-zinc-500 uppercase tracking-wider block">Procrastination Jar</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-white">
+                          {procrastinationCoins === 0 ? "Empty! 🎉" : `${procrastinationCoins} Coins`}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 max-w-[160px] leading-tight">
+                        {procrastinationCoins === 0 
+                          ? "Awesome job! You are actively beating procrastination today." 
+                          : "Each skipped day adds a coin. Clear the jar with a 5-minute win!"}
+                      </p>
+                    </div>
+
+                    {/* Glowing glass jar visual */}
+                    <div className="relative h-20 w-16 bg-zinc-950/80 border border-zinc-800/80 rounded-t-xl rounded-b-2xl flex flex-col justify-end p-2 overflow-hidden shadow-inner shadow-black">
+                      {/* Jar lid */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-zinc-800 border-b border-zinc-900 rounded-t-sm" />
+                      
+                      {/* Coins rendering */}
+                      {procrastinationCoins > 0 && (
+                        <div className="flex flex-wrap-reverse gap-1 justify-center max-h-[85%] overflow-hidden">
+                          {Array.from({ length: Math.min(procrastinationCoins, 8) }).map((_, i) => (
+                            <span 
+                              key={i} 
+                              className="h-3 w-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 border border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-bounce shrink-0"
+                              style={{ animationDelay: `${i * 0.1}s` }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Empty Jar Sparkles */}
+                      {procrastinationCoins === 0 && (
+                        <div className="h-full w-full flex items-center justify-center">
+                          <Sparkles className="h-5 w-5 text-cyan-400 animate-pulse" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 5-Minute Spark Challenge Card */}
+                  <div className="bg-gradient-to-br from-indigo-950/20 to-zinc-950/60 border border-indigo-900/30 p-5 rounded-2xl space-y-4 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute -top-12 -right-12 h-24 w-24 bg-cyan-500/5 rounded-full blur-xl group-hover:bg-cyan-500/10 transition-colors" />
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+                        <Flame className="h-4 w-4 text-cyan-400 animate-pulse" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold uppercase tracking-wider font-mono text-cyan-300">5-Minute Spark</span>
+                        <span className="text-[10px] block text-zinc-500 font-mono">Bite-sized daily momentum</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 text-xs">
+                      <p className="text-zinc-400 font-semibold leading-snug">
+                        "I promise it's just 5 minutes today. Click the spark and let's empty the jar."
+                      </p>
+                      <span className="text-[10px] text-zinc-500 block font-mono">AI Accountability Partner</span>
+                    </div>
+
+                    <button
+                      onClick={handleLaunchSpark}
+                      className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/25 transition-all duration-300 transform active:scale-95"
+                    >
+                      ⚡ Ignite 5-Min Spark
+                    </button>
+                  </div>
+
                   {/* Goal Centered Metric (North Star) */}
                   <div className="bg-zinc-900/30 border border-zinc-900 p-5 rounded-2xl space-y-3">
                     <span className="text-xs font-mono text-zinc-500 uppercase tracking-wider block">Target Career Progress</span>
@@ -1544,6 +1690,44 @@ export default function App() {
                             <span className="text-zinc-300 font-bold">{lessonDefinition.lesson.interview_coverage.companies.slice(0, 3).join(", ")}</span>
                           </div>
                         </div>
+                      </div>
+
+                      {/* ELI5 / Analogy Card */}
+                      <div className="bg-gradient-to-r from-cyan-950/20 to-indigo-950/20 border border-cyan-900/30 p-5 rounded-2xl space-y-3 relative overflow-hidden group">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-cyan-400 animate-pulse" />
+                            <span className="text-xs font-bold uppercase tracking-wider font-mono text-cyan-300">Explain Like I'm 5</span>
+                          </div>
+                          
+                          {/* Toggle switch for ELI5 mode */}
+                          <button
+                            onClick={() => setIsEli5Mode(!isEli5Mode)}
+                            className={`px-3 py-1 rounded-full text-[10px] font-bold font-mono transition-all border ${
+                              isEli5Mode 
+                                ? "bg-cyan-500 text-black border-cyan-400" 
+                                : "bg-zinc-950 text-zinc-400 border-zinc-800"
+                            }`}
+                          >
+                            {isEli5Mode ? "ON" : "OFF"}
+                          </button>
+                        </div>
+                        
+                        {eli5Loading ? (
+                          <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono py-2">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-500" />
+                            <span>Loading analogy...</span>
+                          </div>
+                        ) : isEli5Mode && eli5Data ? (
+                          <div className="space-y-1.5 animate-fadeIn">
+                            <span className="text-xs font-bold text-white block">Analogy: {eli5Data.title}</span>
+                            <p className="text-zinc-300 text-xs leading-relaxed italic">"{eli5Data.analogy}"</p>
+                          </div>
+                        ) : (
+                          <p className="text-zinc-500 text-[11px] leading-relaxed">
+                            Feeling overwhelmed by jargon or math formulas? Toggle the ELI5 switch to translate the core concept of <strong>{lessonDefinition.lesson.title}</strong> into a simple, visual real-world analogy.
+                          </p>
+                        )}
                       </div>
 
                       {/* Visual Whiteboard Panel */}
@@ -2218,9 +2402,36 @@ export default function App() {
                             </div>
                           )}
                           {executionResult.stderr && (
-                            <div>
-                              <span className="text-red-500 block">stderr:</span>
-                              <pre className="text-red-400">{executionResult.stderr}</pre>
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-red-500 block">stderr:</span>
+                                <pre className="text-red-400">{executionResult.stderr}</pre>
+                              </div>
+                              
+                              <button
+                                onClick={() => handleExplainErrorAnalogy(executionResult.stderr, editorCode)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-950/20 border border-red-900/40 hover:bg-red-900/30 hover:text-red-300 text-red-400 rounded-lg text-[10px] font-bold transition-all"
+                              >
+                                <HelpCircle className="h-3.5 w-3.5" />
+                                🆘 Save Me (Get Jargon-Free Analogy)
+                              </button>
+
+                              {errorAnalogyLoading && (
+                                <div className="flex items-center gap-2 p-3 bg-zinc-900/60 border border-zinc-800 rounded-lg text-zinc-400 text-[10px] animate-pulse">
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-400" />
+                                  <span>Analyzing error and generating real-world analogy...</span>
+                                </div>
+                              )}
+
+                              {errorAnalogy && !errorAnalogyLoading && (
+                                <div className="p-3 bg-cyan-950/20 border border-cyan-900/30 rounded-lg text-zinc-300 leading-relaxed text-[11px] space-y-1 shadow-lg shadow-cyan-950/5 animate-fadeIn font-sans">
+                                  <span className="font-bold text-cyan-400 block flex items-center gap-1">
+                                    <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+                                    Emergency Jargon-Free Analogy
+                                  </span>
+                                  <p className="italic text-cyan-200">"{errorAnalogy}"</p>
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -3055,6 +3266,183 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* 5-MINUTE SPARK MODAL */}
+      {sparkActive && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl relative font-sans">
+            
+            {/* Header */}
+            <div className="p-6 border-b border-zinc-900 flex justify-between items-center bg-gradient-to-r from-cyan-950/20 to-indigo-950/20">
+              <div className="flex items-center gap-2">
+                <Flame className="h-5 w-5 text-cyan-400 animate-pulse" />
+                <div>
+                  <h3 className="font-extrabold text-white text-base">5-Minute Spark Daily Challenge</h3>
+                  <span className="text-[10px] text-zinc-500 font-mono block">Bypassing the friction of starting</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setSparkActive(false)}
+                className="text-zinc-500 hover:text-white p-1 hover:bg-zinc-900 rounded-lg transition-colors font-bold text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            {sparkChallenge ? (
+              <div className="p-6 space-y-6">
+                
+                {/* Instruction */}
+                <div className="bg-zinc-900/40 border border-zinc-855 p-4 rounded-xl space-y-1.5">
+                  <span className="text-[10px] font-mono text-cyan-300 font-bold uppercase tracking-wider block">Instruction</span>
+                  <p className="text-zinc-200 text-xs leading-relaxed">{sparkChallenge.instruction}</p>
+                </div>
+
+                {/* Micro Editor */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Mini Python Compiler</span>
+                    <span className="text-[10px] text-zinc-650 italic">No mathematical proofs, just pure logic</span>
+                  </div>
+                  
+                  <textarea
+                    value={sparkCode}
+                    onChange={(e) => setSparkCode(e.target.value)}
+                    rows={8}
+                    className="w-full bg-zinc-900/80 border border-zinc-805 rounded-xl p-4 text-xs font-mono text-cyan-200 focus:outline-none focus:border-cyan-500 transition-colors resize-y leading-relaxed"
+                  />
+                </div>
+
+                {/* Output Logs */}
+                {sparkResult && (
+                  <div className={`p-4 rounded-xl text-xs space-y-2 border ${
+                    sparkResult.passed 
+                      ? "bg-emerald-950/20 border-emerald-900/30 text-emerald-400" 
+                      : "bg-red-950/20 border-red-900/40 text-red-400"
+                  }`}>
+                    <span className="font-extrabold uppercase tracking-wider text-[10px] font-mono block">
+                      {sparkResult.passed ? "🎉 Victory! Challenge Completed." : "❌ Test Failed"}
+                    </span>
+                    
+                    {sparkResult.passed ? (
+                      <p className="leading-snug">Awesome job! You broke the inertia. The Procrastination Jar has been emptied, and you earned 100 XP. Momentum is on your side!</p>
+                    ) : (
+                      <div className="space-y-1 font-mono text-[10px]">
+                        {sparkResult.stderr && <pre className="text-red-300">{sparkResult.stderr}</pre>}
+                        {sparkResult.actual && (
+                          <p>Expected: <strong className="text-white">{sparkResult.expected}</strong> | Got: <strong className="text-white">{sparkResult.actual}</strong></p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Bar */}
+                <div className="flex justify-between items-center pt-2">
+                  <button
+                    onClick={() => setSparkActive(false)}
+                    className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-bold transition-all"
+                  >
+                    Close
+                  </button>
+                  
+                  <button
+                    onClick={handleExecuteSpark}
+                    disabled={sparkSubmitting}
+                    className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/25 transition-all flex items-center gap-2"
+                  >
+                    {sparkSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    ⚡ Compile & Run
+                  </button>
+                </div>
+
+              </div>
+            ) : (
+              <div className="p-16 flex flex-col items-center justify-center min-h-[300px]">
+                <Loader2 className="h-8 w-8 text-cyan-400 animate-spin mb-4" />
+                <p className="text-zinc-500 text-xs font-mono">Igniting challenge details...</p>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* Zero-Jargon Complexity Whiteboard Floating Trigger */}
+      <button
+        onClick={() => setIsComplexitySidebarOpen(true)}
+        className="fixed bottom-6 right-6 z-40 p-3 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-600 hover:to-indigo-700 text-white rounded-full shadow-2xl hover:scale-105 transition-all flex items-center gap-1.5 font-bold text-xs"
+      >
+        <BookOpen className="h-4 w-4" />
+        <span>Complexity Guide</span>
+      </button>
+
+      {/* Complexity Sidebar Overlay */}
+      {isComplexitySidebarOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end animate-fadeIn font-sans">
+          <div className="w-full max-w-md bg-zinc-950 border-l border-zinc-800 h-full p-6 flex flex-col justify-between shadow-2xl relative">
+            
+            <div className="space-y-6 overflow-y-auto pr-2">
+              {/* Header */}
+              <div className="flex justify-between items-center border-b border-zinc-900 pb-4">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-cyan-400" />
+                  <div>
+                    <h3 className="font-extrabold text-white text-sm">Zero-Jargon Complexity Guide</h3>
+                    <span className="text-[10px] text-zinc-500 font-mono">No math, just pure intuition</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsComplexitySidebarOpen(false)}
+                  className="text-zinc-500 hover:text-white p-1 hover:bg-zinc-900 rounded-lg transition-colors font-bold text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Analogy cards */}
+              <div className="space-y-4 text-xs">
+                <div className="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-1.5">
+                  <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider block">O(1) - Constant Time</span>
+                  <p className="text-zinc-200 leading-relaxed font-semibold">"Opening a book that is already open to the right page."</p>
+                  <p className="text-zinc-500 text-[10px] leading-tight">No matter how big the library is, it takes exactly the same amount of time.</p>
+                </div>
+
+                <div className="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-1.5">
+                  <span className="text-[10px] font-mono text-indigo-400 font-bold uppercase tracking-wider block">O(log N) - Logarithmic Time</span>
+                  <p className="text-zinc-200 leading-relaxed font-semibold">"Tearing a phone book in half, throwing away the half without the name, and repeating."</p>
+                  <p className="text-zinc-500 text-[10px] leading-tight">Every choice cuts the remaining search space in half. Extremely fast!</p>
+                </div>
+
+                <div className="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-1.5">
+                  <span className="text-[10px] font-mono text-amber-400 font-bold uppercase tracking-wider block">O(N) - Linear Time</span>
+                  <p className="text-zinc-200 leading-relaxed font-semibold">"Reading every single page of a book from start to finish."</p>
+                  <p className="text-zinc-500 text-[10px] leading-tight">If the book has twice as many pages, it takes twice as long to read.</p>
+                </div>
+
+                <div className="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-1.5">
+                  <span className="text-[10px] font-mono text-rose-400 font-bold uppercase tracking-wider block">O(N^2) - Quadratic Time</span>
+                  <p className="text-zinc-200 leading-relaxed font-semibold">"Comparing every single word on a page with every other word on the page."</p>
+                  <p className="text-zinc-500 text-[10px] leading-tight">As complexity grows, computation scales quadratically. Slow for large datasets.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-zinc-900 pt-4 mt-6">
+              <button
+                onClick={() => setIsComplexitySidebarOpen(false)}
+                className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 text-white text-xs font-bold rounded-xl transition-colors"
+              >
+                Close Guide
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

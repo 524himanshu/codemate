@@ -351,3 +351,162 @@ async def websocket_interview(websocket: WebSocket, room_id: str):
     except Exception as e:
         logger.error(f"WebSocket execution crash: {e}")
         manager.disconnect(websocket, room_id)
+
+
+# --- ANTI-PROCRASTINATION & ELI5 ENDPOINTS ---
+
+from pydantic import BaseModel
+import random
+import re
+
+class SparkExecuteRequest(BaseModel):
+    challenge_id: str
+    code: str
+
+class ErrorAnalogyRequest(BaseModel):
+    error_message: str
+    code_context: str
+
+ELI5_ANALOGIES = {
+    "variables": {
+        "title": "Variables & Syntax",
+        "analogy": "A variable is like a labeled storage box in your closet. Instead of carrying around a heavy coat, you put it in a box labeled 'winter_coat'. When you want to use it, you just call for 'winter_coat', and Python grabs whatever is inside that box. If you put a t-shirt in it later, the box now holds the t-shirt instead."
+    },
+    "loops": {
+        "title": "Loops & Control Flow",
+        "analogy": "A loop is like a gym instructor telling you to do 10 pushups. Instead of writing 'do pushup' 10 times in your notebook, the instructor says: 'As long as your pushup count is less than 10, keep doing a pushup and add 1 to your count.' A 'for' loop is when you know exactly how many loops to run; a 'while' loop is like running on a treadmill until you feel tired (a condition changes)."
+    },
+    "functions": {
+        "title": "Functions & Parameters",
+        "analogy": "A function is like a recipe for baking a chocolate cake. You write down the steps once. Whenever someone wants cake, they don't rewrite the recipe—they just call make_cake(). The inputs (like eggs or flour) are 'parameters'. You can bake a cake with 2 eggs or 4 eggs; the function recipe handles both and returns a finished cake!"
+    },
+    "recursion": {
+        "title": "Recursion & Trees",
+        "analogy": "Recursion is like Russian nesting dolls. You open a big doll, only to find a slightly smaller doll inside. You keep opening dolls until you find the smallest possible doll that doesn't open (this is the 'Base Case'). Then, you gather the dolls back up, one by one, to return the final answer. In code, a recursive function calls itself with a smaller input until it hits the base case."
+    },
+    "intro-to-algorithms": {
+        "title": "Introduction to Algorithms",
+        "analogy": "An algorithm is like a step-by-step navigation map to get to a cafe. It's not the cafe itself, and it's not the car you drive. It is the set of turns: 'Go straight for 500m, turn left, if the gate is closed, take the detour.' It is a precise recipe to solve a problem."
+    },
+    "asymptotic-notation": {
+        "title": "Asymptotic Notation (Big-O)",
+        "analogy": "Big-O notation is like predicting how long it takes to clean a room as it gets messier. If you have 1 toy (n=1), it takes 1 minute. If you have 10 toys: constant time O(1) means you throw them all in a big chest instantly. Linear time O(N) means you clean each toy one-by-one (10 minutes). Quadratic time O(N^2) means you compare every toy with every other toy to see if they match, taking 100 minutes!"
+    }
+}
+
+SPARK_CHALLENGES = [
+    {
+        "id": "spark-1",
+        "title": "Variable Swap",
+        "instruction": "Fix the code so that variables `a` and `b` swap their values. Currently `a` is 5 and `b` is 10.",
+        "code_template": "a = 5\nb = 10\n# Swap them here\n\n\n# Do not change below\nreturn_val = (a, b)",
+        "test_cases": [
+            {"input": "()", "expected": "(10, 5)"}
+        ]
+    },
+    {
+        "id": "spark-2",
+        "title": "Fix the Infinite Loop",
+        "instruction": "The loop below runs forever. Change the loop update step so it terminates when `i` reaches 5.",
+        "code_template": "i = 0\nwhile i < 5:\n    # Update i here to prevent infinite loop\n    pass\n\n# Do not change below\nreturn_val = i",
+        "test_cases": [
+            {"input": "()", "expected": "5"}
+        ]
+    },
+    {
+        "id": "spark-3",
+        "title": "Simple Adder",
+        "instruction": "Complete the function `add(x, y)` to return their sum. No complex math, just basic syntax!",
+        "code_template": "def add(x, y):\n    # Write return here\n    pass\n\n# Do not change below\nreturn_val = add(12, 8)",
+        "test_cases": [
+            {"input": "()", "expected": "20"}
+        ]
+    }
+]
+
+@router.get("/eli5/{topic_id}")
+async def get_eli5_analogy(topic_id: str):
+    if topic_id in ELI5_ANALOGIES:
+        return ELI5_ANALOGIES[topic_id]
+    
+    # Fallback to Gemini if online, otherwise return a default
+    if not gemini_service.is_mock():
+        try:
+            prompt = f"Explain the computer science concept of '{topic_id}' using a simple, clear real-world analogy. Keep it under 80 words and explain it like I'm 5 years old. Do not use dry math or coding jargon."
+            system = "You are a friendly, encouraging coding tutor who explains advanced concepts using simple, visual real-world analogies."
+            analogy_text = await gemini_service.generate_content(prompt, system)
+            return {"title": topic_id.replace("-", " ").title(), "analogy": analogy_text.strip()}
+        except Exception as e:
+            logger.error(f"Error calling Gemini for ELI5 fallback: {e}")
+            
+    return {
+        "title": topic_id.replace("-", " ").title(),
+        "analogy": "This concept is like a train station layout. Nodes represent platforms, and rails represent connections. To visit every platform, you can follow the tracks one-by-one."
+    }
+
+@router.get("/spark-challenge")
+async def get_spark_challenge():
+    return random.choice(SPARK_CHALLENGES)
+
+@router.post("/execute-spark")
+async def execute_spark_code(request: SparkExecuteRequest):
+    challenge = None
+    for c in SPARK_CHALLENGES:
+        if c["id"] == request.challenge_id:
+            challenge = c
+            break
+            
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+        
+    full_code = f"""
+{request.code}
+
+print("###RESULTS###" + str(return_val))
+"""
+    test_cases = [{"input": "()", "expected": challenge["test_cases"][0]["expected"]}]
+    exec_result = execution_engine.run_code("python", full_code, test_cases)
+    
+    stdout = exec_result.get("stdout", "")
+    passed = False
+    actual_val = ""
+    for line in stdout.splitlines():
+        if line.startswith("###RESULTS###"):
+            actual_val = line.replace("###RESULTS###", "").strip()
+            if actual_val == challenge["test_cases"][0]["expected"]:
+                passed = True
+                
+    return {
+        "passed": passed,
+        "stdout": stdout,
+        "stderr": exec_result.get("stderr", ""),
+        "actual": actual_val,
+        "expected": challenge["test_cases"][0]["expected"]
+    }
+
+@router.post("/explain-error-analogy")
+async def explain_error_analogy(request: ErrorAnalogyRequest):
+    prompt = f"""
+    The student's code failed execution with this error:
+    "{request.error_message}"
+    
+    Here is a snippet of their code:
+    ```
+    {request.code_context}
+    ```
+    
+    Explain what this error means using a simple, visual real-world analogy (like a recipe, a post office box, a car, sorting socks, etc.).
+    Keep it under 65 words. Encourage them and explain the *concept* of the error, but do NOT give them the code to fix it.
+    """
+    system = "You are a patient, encouraging AI coding partner who explains programming compile/runtime errors using funny, memorable real-world analogies."
+    
+    if not gemini_service.is_mock():
+        try:
+            analogy_text = await gemini_service.generate_content(prompt, system)
+            return {"analogy": analogy_text.strip()}
+        except Exception as e:
+            logger.error(f"Error calling Gemini for error analogy: {e}")
+            
+    return {
+        "analogy": "This error is like trying to put a book into a mail slot that is too narrow. You are trying to reference an index that doesn't exist. Try checking if your range boundary matches the container size!"
+    }
