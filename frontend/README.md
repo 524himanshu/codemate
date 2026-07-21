@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CodeMate Frontend | Career OS V1
 
-## Getting Started
+This is the frontend dashboard of **CodeMate**—the self-taught builder's path to getting hired. It is built using **Next.js** (App Router), **TailwindCSS**, and **TypeScript**, designed with a neon-accented glassmorphic theme.
 
-First, run the development server:
+---
 
+## ⚡ Core Features
+
+### 1. The Procrastination Jar
+*   A gamified visual feedback widget on the dashboard homepage.
+*   Skipped days add golden coins to a glowing glass jar.
+*   Completing a **5-Minute Spark** challenge or lesson empties the jar and awards an XP bonus to rebuild momentum.
+
+### 2. "5-Minute Spark" Challenges
+*   A fullscreen modal with a built-in micro Python compiler.
+*   Provides 2-minute logic tasks (e.g. variable swapping, loops) to bypass starting inertia and kickstart study sessions.
+
+### 3. "Explain Like I'm 5" (ELI5) Toggle
+*   Embedded switch in the Academy classroom lesson description.
+*   Instantly replaces dry math and jargon-heavy theory with simple, real-world analogies (e.g. Russian nesting dolls for recursion).
+
+### 4. "Save Me" Frustration-Guard
+*   Located in the sandbox terminal console whenever code fails.
+*   Translates compiler `stderr` logs into a visual, concept-explaining analogy using Gemini rather than spoiling the solution.
+
+### 5. Zero-Jargon Complexity Whiteboard
+*   A floating sidebar reference guide explaining Big-O time complexity through physical examples (e.g., ripping a phone book in half for $O(\log N)$).
+
+---
+
+## 🛠️ Getting Started
+
+### 1. Install Dependencies
+Run from the `frontend/` directory:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
+Make sure your backend server is running and configure the API endpoint. Create a `.env` file or verify that `process.env.NEXT_PUBLIC_BACKEND_URL` is pointing to your active backend (e.g., `http://localhost:8000`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Run Development Server
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the interactive dashboard.
