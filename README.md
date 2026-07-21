@@ -10,17 +10,23 @@ CodeMate is an AI-powered Career Operating System designed to take self-taught d
 - **Tutor Chatbot & AST Whiteboard**: Conversational AI guidance coupled with a deterministic Python runner capturing stack traces using custom `sys.settrace` hooks.
 - **Multilingual Subprocess Sandbox**: Compile and run code in isolated subprocesses under a 2-second timeout. Auto-detects and executes **Python**, **JavaScript** (Node.js), **Java** (javac/java), and **C++** (g++).
 - **Interactive SVG Skills Graph**: A visual vector skills tree reflecting mastery ratios, unlocking nodes, and path connections dynamically.
-- **Explain Like I'm 5 (ELI5)**: Tailor explanations of complex topics with interactive tabs: *Overview (Analogy)*, *Explain Like I'm 5 (simple language + emojis)*, and *Under the Hood (memory layouts & compilation details)*.
+- **Explain Like I'm 5 (ELI5) Toggle**: Translates dry technical theories and algorithms into simple real-world analogies (e.g. Russian nesting dolls for recursion) dynamically mapped or generated via Gemini.
+- **Save Me (Frustration-Guard)**: A debugging advisor placed next to compiler failures. Instead of giving the answer, it uses Gemini to explain the error stdout/stderr as a physical analogy to prevent frustration-quitting.
+- **Complexity Guide**: A floating sidebar reference card explaining asymptotic Big-O notations using physical actions (e.g., ripping a phone book in half for $O(\log N)$).
 
-### 2. Leitner Spaced-Repetition Scheduler
+### 2. Gamified Anti-Procrastination System
+- **Procrastination Jar**: Displays a glass jar that fills with golden coins on skipped days. Clear the jar by finishing daily coding tasks to earn XP.
+- **5-Minute Spark**: A micro-compiler overlays the workspace, loading 2-minute logic tasks (variable swaps, loop counters) to break starting inertia and build instant study momentum.
+
+### 3. Leitner Spaced-Repetition Scheduler
 - Calculates review dates dynamically based on user scores.
 - Displays a prioritized daily "Spaced Repetition Queue" on the dashboard for concepts requiring refreshers.
 
-### 3. Collaborative Multiplayer Mock Interview Rooms
+### 4. Collaborative Multiplayer Mock Interview Rooms
 - Real-time peer-to-peer workspace syncing over FastAPI WebSockets (`wss://`).
 - Synchronizes candidate code typing, compile output logs, and visual stack trace whiteboard replays instantly across interviewer and candidate screens.
 
-### 4. Project-Based Resume Bullet Analyzer
+### 5. Project-Based Resume Bullet Analyzer
 - Analyzes public GitHub repositories.
 - Evaluates code complexity and originality.
 - Returns verified, impact-oriented bullet points tailored to specific target engineering roles.
