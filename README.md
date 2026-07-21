@@ -45,7 +45,7 @@ To prevent system exploits when compiling user-submitted code in local subproces
 ## 📁 Workspace Architecture
 
 ```
-dazzling-volta/
+codemate/
 ├── frontend/             # Next.js App Router Web App (TypeScript)
 │   ├── app/              # Page routes & dashboard layout components
 │   ├── lib/              # Client API fetch calls
