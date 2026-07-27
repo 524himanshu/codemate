@@ -112,6 +112,28 @@ export const api = {
     return res.json();
   },
 
+  async runRepairAgent(userId: string, topicId: string, stateType: string, code: string, stderr: string = "", errorExplanation: string = ""): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/teaching/repair-agent`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        topic_id: topicId,
+        state_type: stateType,
+        code: code,
+        stderr: stderr,
+        error_explanation: errorExplanation
+      }),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to run Repair Agent");
+    }
+    return res.json();
+  },
+
+
   async getHint(userId: string, topicId: string, stateType: string, code: string, attemptCount: number): Promise<HintResponse> {
     const res = await fetch(`${BACKEND_URL}/api/teaching/hint`, {
       method: "POST",

@@ -54,3 +54,22 @@ class ExplanationRequest(BaseModel):
 class ExplanationResponse(BaseModel):
     style: str
     explanation: str
+
+class RepairAgentRequest(BaseModel):
+    user_id: Optional[str] = "guest"
+    topic_id: str
+    state_type: str
+    code: str
+    stderr: Optional[str] = ""
+    error_explanation: Optional[str] = ""
+
+class RepairAgentResponse(BaseModel):
+    status: str
+    explanation: str
+    bug_root_cause: str
+    patched_code: str
+    unified_diff: str
+    verified_pass: bool
+    runtime_ms: float
+    test_results: List[TestCaseResult]
+

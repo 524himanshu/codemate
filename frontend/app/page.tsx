@@ -181,6 +181,13 @@ export default function App() {
   const [hintType, setHintType] = useState<string>("");
   const [hintLoading, setHintLoading] = useState<boolean>(false);
 
+  // Autonomous Repair Agent State
+  const [repairLoading, setRepairLoading] = useState<boolean>(false);
+  const [repairStep, setRepairStep] = useState<string>("");
+  const [repairData, setRepairData] = useState<any>(null);
+  const [showRepairModal, setShowRepairModal] = useState<boolean>(false);
+
+
   // Teach Back State
   const [teachbackText, setTeachbackText] = useState<string>("");
   const [teachbackResult, setTeachbackResult] = useState<any>(null);
@@ -621,6 +628,49 @@ export default function App() {
       setHintLoading(false);
     }
   };
+
+  const handleRunRepairAgent = async (stateType: "build" | "challenge") => {
+    setRepairLoading(true);
+    setRepairData(null);
+    setShowRepairModal(true);
+    setRepairStep("Initializing Repair Agent & analyzing AST stack trace...");
+
+    const targetCode = interviewActive ? interviewCode : editorCode;
+    const stderr = executionResult?.stderr || "";
+    const explanation = executionResult?.error_explanation || "";
+
+    try {
+      setTimeout(() => setRepairStep("Generating unified diff patch with Gemini AI..."), 1200);
+      setTimeout(() => setRepairStep("Re-verifying patch in isolated subprocess sandbox..."), 2500);
+
+      const data = await api.runRepairAgent(
+        userId,
+        selectedTopic,
+        stateType,
+        targetCode,
+        stderr,
+        explanation
+      );
+      setRepairData(data);
+      setRepairStep(data.verified_pass ? "Verified Pass ✓ (100% Tests Passed)" : "Patch Generated for Review");
+    } catch (err) {
+      console.error("Repair agent failed:", err);
+      setRepairStep("Repair Agent failed to connect.");
+    } finally {
+      setRepairLoading(false);
+    }
+  };
+
+  const handleApplyPatch = (patchedCode: string) => {
+    if (interviewActive) {
+      setInterviewCode(patchedCode);
+    } else {
+      setEditorCode(patchedCode);
+    }
+    setShowRepairModal(false);
+    alert("AI Patch applied to editor successfully! Click 'Run Code' to execute verified code.");
+  };
+
 
   const handleSubmitTeachback = async () => {
     if (!teachbackText.trim()) return;
@@ -2459,6 +2509,20 @@ export default function App() {
                               <p>{executionResult.error_explanation}</p>
                             </div>
                           )}
+
+                          {/* Autonomous Repair Agent Trigger Button */}
+                          {(!executionResult.passed_all || executionResult.stderr) && (
+                            <div className="pt-2">
+                              <button
+                                onClick={() => handleRunRepairAgent("build")}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-900/60 via-indigo-900/60 to-cyan-900/60 hover:from-purple-800 hover:to-cyan-800 border border-purple-500/40 text-purple-200 rounded-xl text-xs font-bold shadow-lg shadow-purple-950/30 transition-all transform hover:scale-[1.02]"
+                              >
+                                <Sparkles className="h-4 w-4 text-purple-300 animate-pulse" />
+                                <span>🤖 Launch Autonomous Repair Agent (Sandbox Re-verification)</span>
+                              </button>
+                            </div>
+                          )}
+
                           {executionResult.ai_optimization_suggestion && (
                             <div className="p-3 bg-indigo-950/20 border border-indigo-900/30 rounded-lg text-zinc-300 leading-relaxed text-[10px] space-y-1">
                               <span className="font-bold text-indigo-400 block">✨ Key Insight</span>
@@ -3443,6 +3507,117 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Autonomous Repair Agent Modal */}
+      {showRepairModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-zinc-950 border border-purple-500/30 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 flex justify-between items-center">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400">
+                  <Sparkles className="h-5 w-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    🤖 Autonomous Repair Agent
+                    <span className="text-[10px] font-mono font-normal px-2 py-0.5 bg-purple-950/60 border border-purple-800/40 text-purple-300 rounded-full">
+                      Sandbox Loop Active
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">Stack Trace Inspection ➔ AST Patch ➔ Sandbox Re-verification</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRepairModal(false)}
+                className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 overflow-y-auto font-sans">
+              {/* Step indicator */}
+              <div className="p-3.5 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-2">
+                <span className="text-[10px] font-mono text-zinc-500 font-bold uppercase tracking-wider block">Agent Pipeline Status</span>
+                <div className="flex items-center gap-2 text-xs font-semibold text-cyan-300">
+                  {repairLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-purple-400 shrink-0" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
+                  )}
+                  <span>{repairStep}</span>
+                </div>
+              </div>
+
+              {/* Repair Result Content */}
+              {repairData && (
+                <div className="space-y-4">
+                  {/* Status Badges */}
+                  <div className="flex items-center gap-3">
+                    <div className={`px-3 py-1 rounded-full text-[11px] font-bold border flex items-center gap-1.5 ${
+                      repairData.verified_pass 
+                        ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-300" 
+                        : "bg-amber-950/40 border-amber-500/40 text-amber-300"
+                    }`}>
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      {repairData.verified_pass ? "Verified Pass ✓ (Sandbox Approved)" : "Patch Verification Pending"}
+                    </div>
+
+                    <div className="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[11px] font-mono text-zinc-300">
+                      Root Cause: <span className="text-purple-300 font-bold">{repairData.bug_root_cause}</span>
+                    </div>
+                  </div>
+
+                  {/* Explanation */}
+                  <div className="p-4 bg-purple-950/20 border border-purple-900/30 rounded-xl space-y-1">
+                    <span className="text-xs font-bold text-purple-300 block">Agent Fix Summary</span>
+                    <p className="text-xs text-zinc-300 leading-relaxed">{repairData.explanation}</p>
+                  </div>
+
+                  {/* Unified Diff View */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-mono font-bold text-zinc-400 block">Unified Patch Diff (- Original / + Repaired)</span>
+                    <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl overflow-x-auto font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto">
+                      {repairData.unified_diff.split("\n").map((line: string, idx: number) => {
+                        let lineStyle = "text-zinc-400";
+                        if (line.startsWith("+") && !line.startsWith("+++")) lineStyle = "text-emerald-400 bg-emerald-950/30 px-1 rounded";
+                        if (line.startsWith("-") && !line.startsWith("---")) lineStyle = "text-rose-400 bg-rose-950/30 px-1 rounded";
+                        return (
+                          <div key={idx} className={lineStyle}>
+                            {line}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-zinc-900/80 border-t border-zinc-800 flex justify-between items-center">
+              <button
+                onClick={() => setShowRepairModal(false)}
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-semibold transition-colors"
+              >
+                Dismiss
+              </button>
+              {repairData && (
+                <button
+                  onClick={() => handleApplyPatch(repairData.patched_code)}
+                  className="px-5 py-2 bg-gradient-to-r from-purple-600 to-emerald-600 hover:from-purple-500 hover:to-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-950/50 transition-all flex items-center gap-1.5 transform hover:scale-105"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  ⚡ Apply AI Patch to Editor
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

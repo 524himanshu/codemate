@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import difflib
 from fastapi import APIRouter, HTTPException, Path, WebSocket, WebSocketDisconnect
 from typing import List, Dict, Any
 from app.models.teaching import (
@@ -13,11 +14,14 @@ from app.models.teaching import (
     TeachBackRequest,
     TeachBackResponse,
     ExplanationRequest,
-    ExplanationResponse
+    ExplanationResponse,
+    RepairAgentRequest,
+    RepairAgentResponse
 )
 from app.services.runner_service import execution_engine
 from app.services.gemini_service import gemini_service
 from app.services.supabase_service import db_service
+
 
 router = APIRouter()
 logger = logging.getLogger("codemate.teaching")
@@ -510,3 +514,97 @@ async def explain_error_analogy(request: ErrorAnalogyRequest):
     return {
         "analogy": "This error is like trying to put a book into a mail slot that is too narrow. You are trying to reference an index that doesn't exist. Try checking if your range boundary matches the container size!"
     }
+
+@router.post("/repair-agent", response_model=RepairAgentResponse)
+async def run_repair_agent(request: RepairAgentRequest):
+    lesson = load_lesson_definition(request.topic_id)
+    target_state = None
+    for state in lesson.get("states", []):
+        if state.get("type") == request.state_type:
+            target_state = state
+            break
+            
+    test_cases = target_state.get("test_cases", []) if target_state else []
+    exercise_desc = target_state.get("exercise_description", "") if target_state else "Coding challenge"
+
+    lang = "python"
+    if "function " in request.code or "const " in request.code or "let " in request.code:
+        lang = "javascript"
+    elif "public class " in request.code:
+        lang = "java"
+    elif "#include" in request.code:
+        lang = "cpp"
+
+    prompt = f"""
+    You are an Autonomous Code Repair Agent.
+    Task: Fix the bug in the student's code and provide a complete working replacement script.
+    Problem Description: "{exercise_desc}"
+    Language: {lang}
+    Student's Code:
+    ```{lang}
+    {request.code}
+    ```
+    Error / Stderr: {request.stderr}
+    Error Explanation: {request.error_explanation}
+    Test Cases Expected: {json.dumps(test_cases)}
+
+    Respond ONLY in valid raw JSON with this exact schema:
+    {{
+      "explanation": "Brief clear explanation of why it failed and how it was fixed (2 sentences)",
+      "bug_root_cause": "Short 1-line root cause label (e.g. Index Out of Range / Off-by-one loop boundary)",
+      "patched_code": "COMPLETE_REPLACEMENT_CODE_HERE"
+    }}
+    """
+    
+    system = "You are a precise, autonomous code repair agent. Return only raw valid JSON without markdown formatting codeblocks if possible."
+
+    patched_code = request.code
+    explanation = "Repaired code syntax and execution boundaries."
+    bug_root_cause = "Logic boundary / syntax error."
+
+    if not gemini_service.is_mock():
+        try:
+            res_text = await gemini_service.generate_content(prompt, system)
+            clean_text = res_text.strip()
+            if clean_text.startswith("```json"):
+                clean_text = clean_text.replace("```json", "").replace("```", "").strip()
+            elif clean_text.startswith("```"):
+                clean_text = clean_text.replace("```", "").strip()
+                
+            parsed = json.loads(clean_text)
+            patched_code = parsed.get("patched_code", request.code)
+            explanation = parsed.get("explanation", explanation)
+            bug_root_cause = parsed.get("bug_root_cause", bug_root_cause)
+        except Exception as e:
+            logger.error(f"Gemini repair agent parse error: {e}")
+
+    # Re-verify patched code in execution sandbox!
+    exec_result = execution_engine.run_code(lang, patched_code, test_cases)
+    tc_results = []
+    for tr in exec_result.get("test_results", []):
+        tc_results.append(TestCaseResult(
+            input=tr["input"],
+            expected=str(tr["expected"]),
+            actual=str(tr["actual"]),
+            passed=tr["passed"]
+        ))
+
+    # Calculate unified diff
+    orig_lines = request.code.splitlines(keepends=True)
+    patch_lines = patched_code.splitlines(keepends=True)
+    diff_generator = difflib.unified_diff(orig_lines, patch_lines, fromfile="original.py", tofile="repaired.py")
+    unified_diff = "".join(diff_generator)
+    if not unified_diff:
+        unified_diff = "No line changes."
+
+    return RepairAgentResponse(
+        status="success",
+        explanation=explanation,
+        bug_root_cause=bug_root_cause,
+        patched_code=patched_code,
+        unified_diff=unified_diff,
+        verified_pass=exec_result.get("passed_all", False),
+        runtime_ms=exec_result.get("execution_time_ms", 0.0),
+        test_results=tc_results
+    )
+
