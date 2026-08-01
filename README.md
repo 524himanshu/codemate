@@ -31,6 +31,12 @@ CodeMate is an AI-powered Career Operating System designed to guide self-taught 
 *   Evaluates code complexity and originality.
 *   Returns verified, impact-oriented bullet points tailored to specific target engineering roles.
 
+### 6. Autonomous Self-Healing Repair Agent
+*   **Automated Error Interception**: When user code fails compilation or throws a runtime exception, the self-healing agent intercepts the stack trace, compiler `stderr`, and failed test cases.
+*   **AI Unified Diff Generation**: Generates a precise unified diff patch (`+`/`-`) fixing the root cause bug.
+*   **Sandbox Verification Loop**: Before presenting the fix, the agent automatically re-runs the patched code inside an isolated subprocess compiler sandbox to verify a 100% test pass (`verified_pass = true`).
+*   **One-Click IDE Patch Application**: Presents an interactive unified diff modal with a single "⚡ Apply AI Patch to Editor" button that updates the editor state instantly.
+
 ---
 
 ## 🛡️ Sandbox Security Scan Shield
