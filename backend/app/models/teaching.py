@@ -55,6 +55,14 @@ class ExplanationResponse(BaseModel):
     style: str
     explanation: str
 
+class AgentThoughtStep(BaseModel):
+    step_number: int
+    title: str
+    thought_process: str
+    tool_call: Optional[str] = None
+    tool_output: Optional[str] = None
+    timestamp_ms: float
+
 class RepairAgentRequest(BaseModel):
     user_id: Optional[str] = "guest"
     topic_id: str
@@ -72,4 +80,5 @@ class RepairAgentResponse(BaseModel):
     verified_pass: bool
     runtime_ms: float
     test_results: List[TestCaseResult]
+    steps: List[AgentThoughtStep] = []
 

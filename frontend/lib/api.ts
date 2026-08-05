@@ -49,6 +49,27 @@ export interface CodeExecutionResponse {
   trace?: any[];
 }
 
+export interface AgentThoughtStep {
+  step_number: number;
+  title: string;
+  thought_process: string;
+  tool_call?: string;
+  tool_output?: string;
+  timestamp_ms: number;
+}
+
+export interface RepairAgentResponse {
+  status: string;
+  explanation: string;
+  bug_root_cause: string;
+  patched_code: string;
+  unified_diff: string;
+  verified_pass: boolean;
+  runtime_ms: number;
+  test_results: TestCaseResult[];
+  steps?: AgentThoughtStep[];
+}
+
 export interface HintResponse {
   hint_type: "syntax" | "logic" | "interview" | "solution";
   message: string;
@@ -112,7 +133,7 @@ export const api = {
     return res.json();
   },
 
-  async runRepairAgent(userId: string, topicId: string, stateType: string, code: string, stderr: string = "", errorExplanation: string = ""): Promise<any> {
+  async runRepairAgent(userId: string, topicId: string, stateType: string, code: string, stderr: string = "", errorExplanation: string = ""): Promise<RepairAgentResponse> {
     const res = await fetch(`${BACKEND_URL}/api/teaching/repair-agent`, {
       method: "POST",
       headers: {

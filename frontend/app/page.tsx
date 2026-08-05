@@ -3540,7 +3540,10 @@ export default function App() {
             <div className="p-6 space-y-5 overflow-y-auto font-sans">
               {/* Step indicator */}
               <div className="p-3.5 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-2">
-                <span className="text-[10px] font-mono text-zinc-500 font-bold uppercase tracking-wider block">Agent Pipeline Status</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-mono text-zinc-400 font-bold uppercase tracking-wider block">Agent Reasoning & Execution Stream</span>
+                  <span className="text-[10px] font-mono text-purple-400 font-medium">Re-verification Loop Active</span>
+                </div>
                 <div className="flex items-center gap-2 text-xs font-semibold text-cyan-300">
                   {repairLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin text-purple-400 shrink-0" />
@@ -3551,9 +3554,42 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Multi-Step Agentic Thought Stream */}
+              {repairData?.steps && repairData.steps.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-xs font-mono font-bold text-zinc-300 block">Agent Chain-of-Thought & Tool Calls</span>
+                  <div className="space-y-2">
+                    {repairData.steps.map((step: any, sIdx: number) => (
+                      <div key={sIdx} className="p-3 bg-zinc-900/80 border border-purple-500/20 rounded-xl space-y-1.5 transition-all hover:border-purple-500/40">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-purple-950 border border-purple-700/50 flex items-center justify-center text-[10px] font-mono text-purple-200">
+                              {step.step_number}
+                            </span>
+                            {step.title}
+                          </span>
+                          <span className="text-[10px] font-mono text-zinc-500">{step.timestamp_ms}ms</span>
+                        </div>
+                        <p className="text-[11px] text-zinc-300 leading-relaxed font-sans">{step.thought_process}</p>
+                        {step.tool_call && (
+                          <div className="flex items-center gap-2 pt-1 font-mono text-[10px]">
+                            <span className="px-2 py-0.5 bg-indigo-950/80 border border-indigo-700/50 text-indigo-300 rounded-md font-semibold">
+                              tool: {step.tool_call}
+                            </span>
+                            {step.tool_output && (
+                              <span className="text-zinc-400 truncate max-w-xs">{step.tool_output}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Repair Result Content */}
               {repairData && (
-                <div className="space-y-4">
+                <div className="space-y-4 pt-2">
                   {/* Status Badges */}
                   <div className="flex items-center gap-3">
                     <div className={`px-3 py-1 rounded-full text-[11px] font-bold border flex items-center gap-1.5 ${
